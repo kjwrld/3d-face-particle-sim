@@ -20,7 +20,7 @@ import fragmentShader from "../shaders/faceParticles.frag?raw";
 const PARTICLE_GENERATION = {
     DEFAULT_POINT_SIZE: 5.0,
     SURFACE_SAMPLES_PER_TRIANGLE: 64,
-    MIN_SURFACE_SAMPLES: 64,
+    MIN_SURFACE_SAMPLES: 32,
     AREA_MULTIPLIER: 1000,
     EDGE_SAMPLES_PER_EDGE: 5,
     EDGE_INTERPOLATION_DIVISOR: 6,
@@ -28,7 +28,7 @@ const PARTICLE_GENERATION = {
     FALLBACK_UV: { u: 0.5, v: 0.5 },
 } as const;
 
-export function ShaderFaceParticles() {
+export function LegacyPointParticles() {
     const pointsRef = useRef<Points>(null);
 
     // Leva controls for position and rotation

@@ -4,15 +4,13 @@
  */
 
 import { Vector3, Color, MathUtils } from 'three';
-import { 
+import { ParticleQualityLevel, ParticleLifecyclePhase } from '../types/particleTypes';
+import type { 
     ParticleSystemConfig, 
-    ParticleQualityLevel, 
     WebGLCapabilities,
-    ParticleLifecyclePhase,
     ParticleLifeCycle,
     ProximityInfluence,
-    ParticleData,
-    NoiseConfig
+    ParticleData
 } from '../types/particleTypes';
 import { PARTICLE_SYSTEM_CONFIG, WEBGL_REQUIREMENTS } from '../config/particleConstants';
 

@@ -39,6 +39,17 @@ export const PARTICLE_SYSTEM_CONFIG = {
         },
     },
 
+    // Surface sampling configuration (moved from embedded constants)
+    SURFACE_SAMPLING: {
+        SAMPLES_PER_TRIANGLE: 64,
+        MIN_SAMPLES: 12,
+        AREA_MULTIPLIER: 1000,
+        EDGE_SAMPLES_PER_EDGE: 5,
+        EDGE_INTERPOLATION_DIVISOR: 6,
+        BACK_FACE_CULLING_THRESHOLD: -0.3,
+        FALLBACK_UV: { u: 0.5, v: 0.5 },
+    },
+
     // Particle Lifecycle
     LIFECYCLE: {
         PHASES: {
