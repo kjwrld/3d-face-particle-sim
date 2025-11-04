@@ -1,5 +1,5 @@
-import { useRef, useEffect, useMemo } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
+import { useRef, useEffect, useMemo, useState } from "react";
+import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { getDracoLoader } from "../utils/loaders";
 import { useControls } from "leva";
@@ -31,10 +31,23 @@ import {
 } from "../utils/particleUtils";
 import type { ParticleData } from "../types/particleTypes";
 
-export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultMode?: "triangles" | "spheres" }) {
+export function InstancedSphereParticles({
+    defaultMode = "spheres",
+}: {
+    defaultMode?: "triangles" | "spheres";
+}) {
     const meshRef = useRef<InstancedMesh>(null);
     const particlesRef = useRef<ParticleData[]>([]);
     const dummy = useMemo(() => new Object3D(), []);
+    const { gl } = useThree();
+    
+    // Simple mouse tracking for model rotation
+    const [isMouseOnScreen, setIsMouseOnScreen] = useState(true);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    
+    // Smooth rotation interpolation
+    const currentRotation = useRef({ x: 0, y: 0 });
+    const targetRotation = useRef({ x: 0, y: 0 });
 
     // Leva controls for model transform and particle properties
     const controlsConfig: any = {
@@ -86,22 +99,81 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
         max: 3.0,
     };
     controlsConfig.surfaceSampling = {
-        value: 128,
+        value: 72,
         step: 4,
         min: 4,
         max: 128,
     };
 
+    // Animation mode controls
+    controlsConfig.animationMode = {
+        value: "sine_wave",
+        options: {
+            "Sine Wave (Current)": "sine_wave",
+            "Noise Drift": "noise_drift", 
+            "Spiral/Vortex": "spiral_vortex",
+            "Wave Propagation": "wave_propagation"
+        },
+        label: 'Animation Mode'
+    };
+    controlsConfig.animationIntensity = {
+        value: 0.02,
+        step: 0.001,
+        min: 0.0,
+        max: 0.1,
+        label: 'Animation Intensity'
+    };
+    controlsConfig.animationFrequency = {
+        value: 1.0,
+        step: 0.1,
+        min: 0.1,
+        max: 5.0,
+        label: 'Animation Frequency'
+    };
+
+    // Mouse rotation controls (simplified)
+    controlsConfig.mouseRotationEnabled = { 
+        value: true,
+        label: 'Mouse Rotation'
+    };
+    controlsConfig.rotationSensitivity = {
+        value: 0.2,
+        step: 0.1,
+        min: 0.0,
+        max: 2.0,
+        label: 'Rotation Sensitivity'
+    };
+    controlsConfig.rotationEasing = {
+        value: 0.08,
+        step: 0.01,
+        min: 0.02,
+        max: 0.3,
+        label: 'Rotation Easing Speed'
+    };
+
+    // Background color control
+    controlsConfig.backgroundColor = { 
+        value: '#101010',
+        label: 'Background Color'
+    };
+
     const controls = useControls("Particle System", controlsConfig);
-    const { 
-        position, 
-        rotation, 
-        particleScale, 
-        animationSpeed, 
+    const {
+        position,
+        rotation,
+        particleScale,
+        animationSpeed,
         brightness,
         ambientLight,
         particleDensity,
-        surfaceSampling
+        surfaceSampling,
+        animationMode,
+        animationIntensity,
+        animationFrequency,
+        mouseRotationEnabled,
+        rotationSensitivity,
+        rotationEasing,
+        backgroundColor,
     } = controls;
 
     // Load the GLTF model
@@ -189,16 +261,12 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
                 .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
                 .normalize();
 
-            if (
-                normal.z <
-                PARTICLE_SYSTEM_CONFIG.SURFACE_SAMPLING
-                    .BACK_FACE_CULLING_THRESHOLD
-            )
-                continue;
 
             // Adaptive sampling based on triangle size and user controls
             const area = normal.length();
-            const adjustedAreaMultiplier = PARTICLE_SYSTEM_CONFIG.SURFACE_SAMPLING.AREA_MULTIPLIER * particleDensity;
+            const adjustedAreaMultiplier =
+                PARTICLE_SYSTEM_CONFIG.SURFACE_SAMPLING.AREA_MULTIPLIER *
+                particleDensity;
             const sampleCount = Math.min(
                 surfaceSampling,
                 Math.max(
@@ -263,66 +331,95 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
         const { WIDTH, HEIGHT } =
             PARTICLE_SYSTEM_CONFIG.RENDERING.SPHERE_SEGMENTS;
         const geometry = new SphereGeometry(1, WIDTH, HEIGHT);
-        
+
         // Add a dummy positionFlip attribute to prevent shader crashes
         // This will be identical to position since spheres don't flip
         const positionArray = geometry.attributes.position.array;
-        geometry.setAttribute('positionFlip', new Float32BufferAttribute(positionArray.slice(), 3));
-        
+        geometry.setAttribute(
+            "positionFlip",
+            new Float32BufferAttribute(positionArray.slice(), 3)
+        );
+
         return geometry;
     }, []);
 
     // Create triangle geometry for instancing (simplified approach)
     const triangleGeometry = useMemo(() => {
         const geometry = new BufferGeometry();
-        
+
         // Triangle angles (following The Spirit's pattern)
         const PI = Math.PI;
-        const angle = PI * 2 / 3;
+        const angle = (PI * 2) / 3;
         const angles = [
-            Math.sin(angle * 2 + PI), Math.cos(angle * 2 + PI),
-            Math.sin(angle + PI), Math.cos(angle + PI), 
-            Math.sin(angle * 3 + PI), Math.cos(angle * 3 + PI),
-            Math.sin(angle * 2), Math.cos(angle * 2),
-            Math.sin(angle), Math.cos(angle),
-            Math.sin(angle * 3), Math.cos(angle * 3)
+            Math.sin(angle * 2 + PI),
+            Math.cos(angle * 2 + PI),
+            Math.sin(angle + PI),
+            Math.cos(angle + PI),
+            Math.sin(angle * 3 + PI),
+            Math.cos(angle * 3 + PI),
+            Math.sin(angle * 2),
+            Math.cos(angle * 2),
+            Math.sin(angle),
+            Math.cos(angle),
+            Math.sin(angle * 3),
+            Math.cos(angle * 3),
         ];
-        
+
         // Single triangle geometry that will be instanced
         const vertices = new Float32Array([
-            angles[0], angles[1], 0,  // vertex 1
-            angles[2], angles[3], 0,  // vertex 2
-            angles[4], angles[5], 0   // vertex 3
+            angles[0],
+            angles[1],
+            0, // vertex 1
+            angles[2],
+            angles[3],
+            0, // vertex 2
+            angles[4],
+            angles[5],
+            0, // vertex 3
         ]);
-        
+
         const verticesFlip = new Float32Array([
-            angles[6], angles[7], 0,   // vertex 1 flipped
-            angles[8], angles[9], 0,   // vertex 2 flipped
-            angles[10], angles[11], 0  // vertex 3 flipped
+            angles[6],
+            angles[7],
+            0, // vertex 1 flipped
+            angles[8],
+            angles[9],
+            0, // vertex 2 flipped
+            angles[10],
+            angles[11],
+            0, // vertex 3 flipped
         ]);
-        
+
         const uvs = new Float32Array([
-            0.5, 1.0,  // top
-            0.0, 0.0,  // bottom left
-            1.0, 0.0   // bottom right
+            0.5,
+            1.0, // top
+            0.0,
+            0.0, // bottom left
+            1.0,
+            0.0, // bottom right
         ]);
-        
+
         const normals = new Float32Array([
-            0.0, 0.0, 1.0,
-            0.0, 0.0, 1.0,
-            0.0, 0.0, 1.0
+            0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
         ]);
-        
-        geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
-        geometry.setAttribute('positionFlip', new Float32BufferAttribute(verticesFlip, 3));
-        geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
-        geometry.setAttribute('normal', new Float32BufferAttribute(normals, 3));
-        
+
+        geometry.setAttribute(
+            "position",
+            new Float32BufferAttribute(vertices, 3)
+        );
+        geometry.setAttribute(
+            "positionFlip",
+            new Float32BufferAttribute(verticesFlip, 3)
+        );
+        geometry.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+        geometry.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+
         return geometry;
     }, []);
 
     // Choose geometry based on default mode
-    const currentGeometry = defaultMode === "triangles" ? triangleGeometry : sphereGeometry;
+    const currentGeometry =
+        defaultMode === "triangles" ? triangleGeometry : sphereGeometry;
 
     // Create shader materials for both sphere and triangle modes
     const sphereShaderMaterial = useMemo(() => {
@@ -335,11 +432,11 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
                 uTime: { value: 0 },
                 uParticleScale: { value: particleScale },
                 uAnimationSpeed: { value: animationSpeed },
-                
+
                 // Triangle uniforms (unused but needed for shader compatibility)
                 uFlipRatio: { value: 0.0 },
                 uUseTriangles: { value: false },
-                
+
                 // Lighting uniforms
                 uBrightness: { value: brightness },
                 uAmbientLight: { value: ambientLight },
@@ -360,11 +457,11 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
                 uTime: { value: 0 },
                 uParticleScale: { value: particleScale },
                 uAnimationSpeed: { value: animationSpeed },
-                
-                // Triangle uniforms  
+
+                // Triangle uniforms
                 uFlipRatio: { value: 0.0 },
                 uUseTriangles: { value: true },
-                
+
                 // Lighting uniforms
                 uBrightness: { value: brightness },
                 uAmbientLight: { value: ambientLight },
@@ -376,18 +473,70 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
     }, [texture, particleScale, animationSpeed, brightness, ambientLight]);
 
     // Choose material based on default mode
-    const currentMaterial = defaultMode === "triangles" ? triangleShaderMaterial : sphereShaderMaterial;
+    const currentMaterial =
+        defaultMode === "triangles"
+            ? triangleShaderMaterial
+            : sphereShaderMaterial;
 
     // Get the actual particle count from extracted data
     const actualParticleCount = extractedData?.count || 0;
 
     // Add particle count display (read-only)
-    useControls("Particle Info", {
-        particleCount: {
-            value: actualParticleCount,
-            disabled: true,
+    useControls(
+        "Particle Info",
+        {
+            particleCount: {
+                value: actualParticleCount,
+                disabled: true,
+            },
         },
-    }, [actualParticleCount]);
+        [actualParticleCount]
+    );
+
+    // Update background color
+    useEffect(() => {
+        gl.setClearColor(backgroundColor);
+    }, [backgroundColor, gl]);
+
+    // Simple mouse tracking for model rotation
+    useEffect(() => {
+        if (!mouseRotationEnabled) return;
+
+        const handleMouseMove = (event: MouseEvent) => {
+            // Normalize mouse position to -1 to 1 range
+            const x = (event.clientX / window.innerWidth) * 2 - 1; // -1 (left) to 1 (right)
+            const y = (event.clientY / window.innerHeight) * 2 - 1; // -1 (top) to 1 (bottom)
+            
+            // Update target rotation
+            targetRotation.current = {
+                x: (y * 0.25 + 0.05) * rotationSensitivity, // -0.2 to 0.3
+                y: (x * 0.3) * rotationSensitivity // -0.3 to 0.3
+            };
+            
+            setMousePosition({ x, y });
+            setIsMouseOnScreen(true);
+        };
+
+        const handleMouseLeave = () => {
+            setIsMouseOnScreen(false);
+            // Set target to center when mouse leaves window
+            targetRotation.current = { x: 0, y: 0 };
+        };
+
+        const handleMouseEnter = () => {
+            setIsMouseOnScreen(true);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseleave', handleMouseLeave);
+        window.addEventListener('mouseenter', handleMouseEnter);
+        
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseleave', handleMouseLeave);
+            window.removeEventListener('mouseenter', handleMouseEnter);
+        };
+    }, [mouseRotationEnabled, rotationSensitivity]);
 
     // Initialize particles
     useEffect(() => {
@@ -449,13 +598,20 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
 
         const time = state.clock.elapsedTime * animationSpeed;
 
+        // Simple smooth rotation easing toward target
+        if (mouseRotationEnabled) {
+            // Always ease toward the current target (mouse position or center)
+            currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * rotationEasing;
+            currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * rotationEasing;
+        }
+
         // Update shader uniforms
         currentMaterial.uniforms.uTime.value = time;
         currentMaterial.uniforms.uParticleScale.value = particleScale;
         currentMaterial.uniforms.uAnimationSpeed.value = animationSpeed;
         currentMaterial.uniforms.uBrightness.value = brightness;
         currentMaterial.uniforms.uAmbientLight.value = ambientLight;
-        
+
         // Simple triangle flipping for triangle mode (no complex controls)
         if (defaultMode === "triangles" && triangleShaderMaterial) {
             // Simple rapid flip animation
@@ -487,9 +643,59 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
             dummy.position.copy(particle.position);
             dummy.scale.setScalar(finalScale);
 
-            // Add slight animation offset based on particle life
-            const animationOffset = Math.sin(time + i * 0.1) * 0.02;
-            dummy.position.y += animationOffset;
+            // Apply selected animation mode
+            let animationOffset = new Vector3(0, 0, 0);
+            
+            switch (animationMode) {
+                case "sine_wave":
+                    // Current method: simple sine wave on Y axis
+                    animationOffset.y = Math.sin(time + i * 0.1) * animationIntensity;
+                    break;
+                    
+                case "noise_drift":
+                    // Organic drift using simple noise-like functions
+                    const noiseX = Math.sin(time * animationFrequency + i * 0.3) * Math.cos(time * 0.7 + i * 0.1);
+                    const noiseY = Math.cos(time * animationFrequency * 0.8 + i * 0.5) * Math.sin(time * 0.9 + i * 0.2);
+                    const noiseZ = Math.sin(time * animationFrequency * 1.2 + i * 0.7) * Math.cos(time * 0.6 + i * 0.4);
+                    animationOffset.set(
+                        noiseX * animationIntensity,
+                        noiseY * animationIntensity,
+                        noiseZ * animationIntensity * 0.5
+                    );
+                    break;
+                    
+                case "spiral_vortex":
+                    // Spiral motion around original position
+                    const spiralTime = time * animationFrequency + i * 0.5;
+                    const spiralRadius = animationIntensity * (0.5 + Math.sin(time * 0.3 + i * 0.1) * 0.3);
+                    animationOffset.set(
+                        Math.cos(spiralTime) * spiralRadius,
+                        Math.sin(spiralTime * 0.7) * spiralRadius * 0.5,
+                        Math.sin(spiralTime) * spiralRadius
+                    );
+                    break;
+                    
+                case "wave_propagation":
+                    // Waves traveling across the face surface
+                    const waveSpeed = time * animationFrequency;
+                    const particlePos = particle.position;
+                    
+                    // Create waves based on distance from center
+                    const distanceFromCenter = Math.sqrt(particlePos.x * particlePos.x + particlePos.y * particlePos.y);
+                    const wave1 = Math.sin(waveSpeed - distanceFromCenter * 5.0) * animationIntensity;
+                    
+                    // Add perpendicular wave
+                    const wave2 = Math.cos(waveSpeed * 0.7 + particlePos.x * 3.0) * animationIntensity * 0.7;
+                    
+                    animationOffset.set(
+                        wave2 * 0.5,
+                        wave1,
+                        (wave1 + wave2) * 0.3
+                    );
+                    break;
+            }
+            
+            dummy.position.add(animationOffset);
 
             dummy.updateMatrix();
             meshRef.current!.setMatrixAt(i, dummy.matrix);
@@ -519,12 +725,19 @@ export function InstancedSphereParticles({ defaultMode = "spheres" }: { defaultM
         return null;
     }
 
+    // Calculate final rotation combining Leva controls and smooth mouse rotation
+    const finalRotation = mouseRotationEnabled ? [
+        rotation[0] + currentRotation.current.x,
+        rotation[1] + currentRotation.current.y,
+        rotation[2] // Z rotation stays unchanged
+    ] : rotation;
+
     return (
         <instancedMesh
             ref={meshRef}
             args={[currentGeometry, currentMaterial, actualParticleCount]}
             position={position}
-            rotation={rotation}
+            rotation={finalRotation}
         />
     );
 }

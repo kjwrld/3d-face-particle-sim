@@ -36,9 +36,11 @@ const FaceModel = memo(() => {
 
 const Controls = memo(() => (
     <OrbitControls
+        enableRotate={false}
+        enablePan={false}
+        enableZoom={true}
         enableDamping
         dampingFactor={0.05}
-        maxPolarAngle={Math.PI / 1.8}
         minDistance={2}
         maxDistance={10}
     />
