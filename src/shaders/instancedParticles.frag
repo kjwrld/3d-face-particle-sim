@@ -5,6 +5,8 @@ uniform sampler2D uTexture;
 uniform float uTime;
 uniform float uParticleScale;
 uniform float uAnimationSpeed;
+uniform float uBrightness;
+uniform float uAmbientLight;
 
 // Varyings from vertex shader
 varying vec2 vInstanceUV;
@@ -43,14 +45,12 @@ void main() {
         alpha = 1.0 - linearStep(0.75, 1.0, life);
     }
     
-    // Basic lighting calculation
-    vec3 lightDirection = normalize(vec3(1.0, 1.0, 1.0));
-    float lightIntensity = max(dot(vNormal, lightDirection), 0.2); // Min ambient
+    // Enhanced lighting calculation - more centered lighting
+    vec3 lightDirection = normalize(vec3(0.0, 1.0, 1.0)); // From above and front, no side bias
+    float lightIntensity = max(dot(vNormal, lightDirection), uAmbientLight);
     
-    // Apply lighting to face color
-    vec3 litColor = faceColor * lightIntensity;
-    
-    // Emissive effect disabled for now - focusing on core particle rendering
+    // Apply lighting and brightness to face color
+    vec3 litColor = faceColor * lightIntensity * uBrightness;
     
     // Apply alpha fade
     gl_FragColor = vec4(litColor, alpha);

@@ -6,5 +6,5 @@ import { InstancedSphereParticles } from "./InstancedSphereParticles";
  * This represents the evolution towards LudoGL-style particles
  */
 export function ModernSphereParticles() {
-    return <InstancedSphereParticles />;
+    return <InstancedSphereParticles defaultMode="spheres" />;
 }

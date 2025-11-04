@@ -1,13 +1,18 @@
-// Instanced Sphere Particles Vertex Shader
+// Instanced Particles Vertex Shader (Sphere + Triangle)
 
 // Instance attributes
 attribute vec2 instanceUV;
 attribute vec4 instanceLifeData; // life, maxLife, isEmissive, scale
 
+// Triangle-specific attributes (will be undefined for spheres)
+attribute vec3 positionFlip;
+
 // Uniforms
 uniform float uTime;
 uniform float uParticleScale;
 uniform float uAnimationSpeed;
+uniform float uFlipRatio;
+uniform bool uUseTriangles;
 
 // Varyings to fragment shader
 varying vec2 vInstanceUV;
@@ -21,8 +26,17 @@ void main() {
     vLifeData = instanceLifeData;
     vNormal = normalize(normalMatrix * normal);
     
+    // Calculate base vertex position
+    vec3 vertexPosition = position;
+    
+    // For triangles, interpolate between position and positionFlip
+    if (uUseTriangles) {
+        // Use positionFlip directly (it will be defined for triangle geometry)
+        vertexPosition = mix(position, positionFlip, uFlipRatio);
+    }
+    
     // Transform vertex position with instance matrix
-    vec4 instancePosition = instanceMatrix * vec4(position, 1.0);
+    vec4 instancePosition = instanceMatrix * vec4(vertexPosition, 1.0);
     
     // Calculate view position for lighting calculations
     vec4 mvPosition = modelViewMatrix * instancePosition;

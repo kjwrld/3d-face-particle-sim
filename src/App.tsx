@@ -4,6 +4,7 @@ import { OrbitControls } from "@react-three/drei";
 import { useControls } from "leva";
 import { LegacyPointParticles } from "./components/LegacyPointParticles";
 import { ModernSphereParticles } from "./components/ModernSphereParticles";
+import { TriangleParticles } from "./components/TriangleParticles";
 import { SimpleFaceLighting } from "./components/SimpleFaceLighting";
 import { SimpleEnvironment } from "./components/SimpleEnvironment";
 import "./App.css";
@@ -11,8 +12,9 @@ import "./App.css";
 const FaceModel = memo(() => {
     const { particleSystem } = useControls("Particle System", {
         particleSystem: {
-            value: "modern",
+            value: "triangles",
             options: {
+                "Triangle Particles": "triangles",
                 "Modern Spheres": "modern",
                 "Legacy Points": "legacy",
             },
@@ -21,7 +23,9 @@ const FaceModel = memo(() => {
 
     return (
         <Suspense fallback={null}>
-            {particleSystem === "modern" ? (
+            {particleSystem === "triangles" ? (
+                <TriangleParticles />
+            ) : particleSystem === "modern" ? (
                 <ModernSphereParticles />
             ) : (
                 <LegacyPointParticles />
@@ -67,7 +71,7 @@ function Scene({
 function App() {
     const [lightingPreset, setLightingPreset] = useState<
         "portrait" | "studio" | "dramatic" | "natural"
-    >("portrait");
+    >("natural");
     const [environmentPreset, setEnvironmentPreset] = useState<
         "studio" | "sunset" | "dawn" | "night" | "forest" | "city" | "apartment"
     >("studio");
