@@ -50,13 +50,7 @@ void main() {
     // Apply lighting to face color
     vec3 litColor = faceColor * lightIntensity;
     
-    // Emissive particles glow
-    if (isEmissive > 0.5) {
-        vec3 emissiveColor = vec3(0.8, 0.1, 0.1); // Red glow
-        float emissiveStrength = 0.5 + 0.3 * sin(uTime * 2.0 + life * 10.0);
-        litColor += emissiveColor * emissiveStrength;
-        alpha = max(alpha, 0.8); // Emissive particles stay more visible
-    }
+    // Emissive effect disabled for now - focusing on core particle rendering
     
     // Apply alpha fade
     gl_FragColor = vec4(litColor, alpha);

@@ -20,14 +20,7 @@ const FaceModel = memo(() => {
     });
 
     return (
-        <Suspense
-            fallback={
-                <mesh>
-                    <sphereGeometry args={[0.5, 8, 8]} />
-                    <meshStandardMaterial color="gray" wireframe />
-                </mesh>
-            }
-        >
+        <Suspense fallback={null}>
             {particleSystem === "modern" ? (
                 <ModernSphereParticles />
             ) : (

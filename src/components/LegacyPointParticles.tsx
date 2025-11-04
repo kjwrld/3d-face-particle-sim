@@ -252,12 +252,7 @@ export function LegacyPointParticles() {
     }, [geometry]);
 
     if (!enhancedGeometry || !shaderMaterial) {
-        return (
-            <mesh>
-                <sphereGeometry args={[0.5, 8, 8]} />
-                <meshStandardMaterial color="gray" wireframe />
-            </mesh>
-        );
+        return null;
     }
 
     return (
