@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { TubeGeometry } from "three";
 
 enum MovementDirection {
     UP = 'up',
@@ -20,10 +21,13 @@ interface TrailActorProps {
     trailIntensity: number;
     maxLifespan: number;
     trailHeight: number;
+    tubeRadius: number;
+    tubeSegments: number;
+    tubeSmoothness: number;
 }
 
-function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensity, maxLifespan, trailHeight }: TrailActorProps) {
-    const trailRef = useRef<THREE.BufferGeometry>(null);
+function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensity, maxLifespan, trailHeight, tubeRadius, tubeSegments, tubeSmoothness }: TrailActorProps) {
+    const meshRef = useRef<THREE.Mesh>(null);
     
     const MAX_TRAIL_LENGTH = 12;
     
@@ -55,18 +59,7 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
         state.current.framesSinceReset = 0;
         state.current.trail = [state.current.currentPosition.clone()];
         
-        // Force a render by updating the geometry if it exists
-        if (trailRef.current) {
-            const positions = new Float32Array([
-                state.current.currentPosition.x,
-                state.current.currentPosition.y,
-                state.current.currentPosition.z,
-                state.current.currentPosition.x,
-                state.current.currentPosition.y + 0.01,
-                state.current.currentPosition.z
-            ]);
-            trailRef.current.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-        }
+        // Initial trail setup for tube geometry
     }, [speed]);
 
     useFrame(() => {
@@ -184,29 +177,18 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
             if (trail.length > MAX_TRAIL_LENGTH) trail.shift();
         }
         
-        // Update trail geometry
-        if (trailRef.current && trail.length >= 2) {
-            const positions = new Float32Array(
-                trail.flatMap((vec) => [vec.x, vec.y, vec.z])
-            );
+        // Update tube geometry
+        if (meshRef.current && trail.length >= 2) {
+            // Create a curve from the trail points
+            const curve = new THREE.CatmullRomCurve3(trail);
             
-            trailRef.current.setAttribute(
-                "position",
-                new THREE.BufferAttribute(positions, 3)
-            );
+            // Create tube geometry with dynamic parameters
+            const segments = Math.floor(trail.length * tubeSmoothness);
+            const tubeGeometry = new TubeGeometry(curve, segments, tubeRadius, tubeSegments, false);
             
-            const colors = new Float32Array(
-                trail.flatMap((_, i) => {
-                    const alpha = (1 - i / trail.length) * trailIntensity;
-                    const color = new THREE.Color(trailColors.color1);
-                    return [color.r, color.g, color.b, alpha]; // Use actual trail color with fading alpha
-                })
-            );
-            
-            trailRef.current.setAttribute(
-                "color",
-                new THREE.BufferAttribute(colors, 4)
-            );
+            // Update the mesh geometry
+            meshRef.current.geometry.dispose();
+            meshRef.current.geometry = tubeGeometry;
         }
     });
 
@@ -216,15 +198,16 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
     }
 
     return (
-        <line>
-            <bufferGeometry ref={trailRef} />
-            <lineBasicMaterial
-                vertexColors
+        <mesh ref={meshRef}>
+            <tubeGeometry args={[new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.1, 0)]), 8, tubeRadius, tubeSegments, false]} />
+            <meshBasicMaterial
+                color={trailColors.color1}
                 transparent
+                opacity={trailIntensity}
                 depthWrite={false}
-                blending={THREE.AdditiveBlending}
+                blending={THREE.NormalBlending}
             />
-        </line>
+        </mesh>
     );
 }
 
@@ -242,6 +225,9 @@ interface VerticalTrailsProps {
         color2: string;
         color3: string;
     };
+    tubeRadius: number;
+    tubeSegments: number;
+    tubeSmoothness: number;
 }
 
 export function VerticalTrails({
@@ -254,6 +240,9 @@ export function VerticalTrails({
     trailIntensity,
     maxLifespan,
     trailColors,
+    tubeRadius,
+    tubeSegments,
+    tubeSmoothness,
 }: VerticalTrailsProps) {
 
     if (!trailsEnabled) return null;
@@ -270,6 +259,9 @@ export function VerticalTrails({
                     trailIntensity={trailIntensity}
                     maxLifespan={maxLifespan}
                     trailHeight={trailHeight}
+                    tubeRadius={tubeRadius}
+                    tubeSegments={tubeSegments}
+                    tubeSmoothness={tubeSmoothness}
                 />
             ))}
         </group>

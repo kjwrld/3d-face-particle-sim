@@ -1,3 +1,19 @@
+/* Disable all zooming */
+html, body {
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+  zoom: normal;
+}
+
+/* Prevent zoom on double-tap */
+* {
+  touch-action: manipulation;
+}
+
 #root {
   width: 100vw;
   height: 100vh;

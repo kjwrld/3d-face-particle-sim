@@ -2,7 +2,7 @@ import { useRef, useEffect, useMemo, useState } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { getDracoLoader } from "../utils/loaders";
-import { useControls } from "leva";
+// Removed useControls import - using constants instead
 import {
     ShaderMaterial,
     BufferGeometry,
@@ -25,7 +25,7 @@ import vertexShader from "../shaders/instancedParticles.vert?raw";
 import fragmentShader from "../shaders/instancedParticles.frag?raw";
 
 // Import our foundation
-import { PARTICLE_SYSTEM_CONFIG } from "../config/particleConstants";
+import { PARTICLE_SYSTEM_CONFIG } from "../constants/particleSystemConfig";
 import {
     ParticleCountCalculator,
     DeviceDetection,
@@ -52,164 +52,7 @@ export function InstancedSphereParticles({
     const currentRotation = useRef({ x: 0, y: 0 });
     const targetRotation = useRef({ x: 0, y: 0 });
 
-    // Leva controls for model transform and particle properties
-    const controlsConfig: any = {
-        position: {
-            value: [0, 0, 0],
-            step: 0.1,
-            min: -5,
-            max: 5,
-        },
-        rotation: {
-            value: [0.15, 0, 0],
-            step: 0.1,
-            min: -Math.PI,
-            max: Math.PI,
-        },
-        particleScale: {
-            value: 0.014,
-            step: 0.001,
-            min: 0.005,
-            max: 0.1,
-        },
-        animationSpeed: {
-            value: 3.0,
-            step: 0.1,
-            min: 0.0,
-            max: 3.0,
-        },
-    };
-
-    // Add lighting controls for better visibility
-    controlsConfig.brightness = {
-        value: 2.1,
-        step: 0.1,
-        min: 0.5,
-        max: 3.0,
-    };
-    controlsConfig.ambientLight = {
-        value: 0.7,
-        step: 0.05,
-        min: 0.0,
-        max: 1.0,
-    };
-
-    // Add particle density controls
-    controlsConfig.particleDensity = {
-        value: 3.0,
-        step: 0.1,
-        min: 0.1,
-        max: 3.0,
-    };
-    controlsConfig.surfaceSampling = {
-        value: 72,
-        step: 4,
-        min: 4,
-        max: 128,
-    };
-
-    // Animation mode controls
-    controlsConfig.animationMode = {
-        value: "sine_wave",
-        options: {
-            "Sine Wave (Current)": "sine_wave",
-            "Noise Drift": "noise_drift", 
-            "Spiral/Vortex": "spiral_vortex",
-            "Wave Propagation": "wave_propagation"
-        },
-        label: 'Animation Mode'
-    };
-    controlsConfig.animationIntensity = {
-        value: 0.02,
-        step: 0.001,
-        min: 0.0,
-        max: 0.1,
-        label: 'Animation Intensity'
-    };
-    controlsConfig.animationFrequency = {
-        value: 1.0,
-        step: 0.1,
-        min: 0.1,
-        max: 5.0,
-        label: 'Animation Frequency'
-    };
-
-    // Mouse rotation controls (simplified)
-    controlsConfig.mouseRotationEnabled = { 
-        value: true,
-        label: 'Mouse Rotation'
-    };
-    controlsConfig.rotationSensitivity = {
-        value: 0.2,
-        step: 0.1,
-        min: 0.0,
-        max: 2.0,
-        label: 'Rotation Sensitivity'
-    };
-    controlsConfig.rotationEasing = {
-        value: 0.08,
-        step: 0.01,
-        min: 0.02,
-        max: 0.3,
-        label: 'Rotation Easing Speed'
-    };
-
-    // Chroma effects controls
-    controlsConfig.chromaEnabled = {
-        value: true,
-        label: "Chroma Effects",
-    };
-    controlsConfig.chromaIntensity = {
-        value: 2.0,
-        step: 0.1,
-        min: 0.0,
-        max: 2.0,
-        label: "Chroma Intensity",
-    };
-    controlsConfig.chromaSeparation = {
-        value: 0.01,
-        step: 0.001,
-        min: 0.0,
-        max: 0.01,
-        label: "Chroma Separation",
-    };
-    controlsConfig.chromaStartPhase = {
-        value: 0.7,
-        step: 0.05,
-        min: 0.5,
-        max: 0.9,
-        label: "Chroma Start Phase",
-    };
-    controlsConfig.chromaColor1 = {
-        value: "#e900ff",
-        label: "Chroma Color 1",
-    };
-    controlsConfig.chromaColor2 = {
-        value: "#00ffec",
-        label: "Chroma Color 2",
-    };
-    controlsConfig.chromaColor3 = {
-        value: "#ffffff",
-        label: "Chroma Color 3",
-    };
-    controlsConfig.chromaBlendMode = {
-        value: "additive",
-        options: {
-            "Additive": "additive",
-            "Multiply": "multiply",
-            "Screen": "screen",
-            "Overlay": "overlay",
-        },
-        label: "Chroma Blend Mode",
-    };
-
-    // Background color control
-    controlsConfig.backgroundColor = { 
-        value: '#101010',
-        label: 'Background Color'
-    };
-
-    const controls = useControls("Particle System", controlsConfig);
+    // Use constants instead of Leva controls
     const {
         position,
         rotation,
@@ -234,7 +77,7 @@ export function InstancedSphereParticles({
         chromaColor3,
         chromaBlendMode,
         backgroundColor,
-    } = controls;
+    } = PARTICLE_SYSTEM_CONFIG;
 
     // Load the GLTF model
     const gltf = useLoader(GLTFLoader, "/models/kj_face.glb", (loader) => {
@@ -558,17 +401,7 @@ export function InstancedSphereParticles({
     // Get the actual particle count from extracted data
     const actualParticleCount = extractedData?.count || 0;
 
-    // Add particle count display (read-only)
-    useControls(
-        "Particle Info",
-        {
-            particleCount: {
-                value: actualParticleCount,
-                disabled: true,
-            },
-        },
-        [actualParticleCount]
-    );
+    // Particle count info (removed from Leva controls)
 
     // Update background color
     useEffect(() => {

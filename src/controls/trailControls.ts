@@ -73,5 +73,28 @@ export function useTrailControls() {
             max: 3.0,
             label: "Distance from Face",
         },
+
+        // Tube Geometry Controls
+        tubeRadius: {
+            value: 0.005,
+            step: 0.001,
+            min: 0.001,
+            max: 0.02,
+            label: "Tube Thickness",
+        },
+        tubeSegments: {
+            value: 3,
+            step: 1,
+            min: 3,
+            max: 8,
+            label: "Tube Segments",
+        },
+        tubeSmoothness: {
+            value: 2.0,
+            step: 0.5,
+            min: 1.0,
+            max: 4.0,
+            label: "Curve Smoothness",
+        },
     });
 }

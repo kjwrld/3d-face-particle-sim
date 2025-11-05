@@ -1,9 +1,6 @@
 import { useState, memo, Suspense, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { useControls } from "leva";
-import { LegacyPointParticles } from "./components/LegacyPointParticles";
-import { ModernSphereParticles } from "./components/ModernSphereParticles";
 import { TriangleParticles } from "./components/TriangleParticles";
 import { SimpleFaceLighting } from "./components/SimpleFaceLighting";
 import { SimpleEnvironment } from "./components/SimpleEnvironment";
@@ -13,26 +10,9 @@ import { Vector3 } from "three";
 import "./App.css";
 
 const FaceModel = memo(() => {
-    const { particleSystem } = useControls("Particle System", {
-        particleSystem: {
-            value: "triangles",
-            options: {
-                "Triangle Particles": "triangles",
-                "Modern Spheres": "modern",
-                "Legacy Points": "legacy",
-            },
-        },
-    });
-
     return (
         <Suspense fallback={null}>
-            {particleSystem === "triangles" ? (
-                <TriangleParticles />
-            ) : particleSystem === "modern" ? (
-                <ModernSphereParticles />
-            ) : (
-                <LegacyPointParticles />
-            )}
+            <TriangleParticles />
         </Suspense>
     );
 });
@@ -41,11 +21,9 @@ const Controls = memo(() => (
     <OrbitControls
         enableRotate={false}
         enablePan={false}
-        enableZoom={true}
+        enableZoom={false}
         enableDamping
         dampingFactor={0.05}
-        minDistance={2}
-        maxDistance={10}
     />
 ));
 
@@ -75,6 +53,9 @@ function Scene({
         trailColor2,
         trailColor3,
         trailRadius,
+        tubeRadius,
+        tubeSegments,
+        tubeSmoothness,
     } = useTrailControls();
 
     // Force trail initialization after mount - multiple attempts
@@ -115,6 +96,9 @@ function Scene({
                     color2: trailColor2,
                     color3: trailColor3,
                 }}
+                tubeRadius={tubeRadius}
+                tubeSegments={tubeSegments}
+                tubeSmoothness={tubeSmoothness}
             />
             <Controls />
         </>
