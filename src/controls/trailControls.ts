@@ -19,7 +19,7 @@ export function useTrailControls() {
 
         // Animation Controls
         trailSpeed: {
-            value: 2.0,
+            value: 1.5,
             step: 0.05,
             min: 1.0,
             max: 2.0,

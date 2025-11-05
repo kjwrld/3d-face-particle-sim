@@ -45,6 +45,7 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
             life: 0,
             maxLife: maxLifespan * (0.5 + Math.random() * 0.5), // 50-100% of maxLifespan
             isDead: false,
+            isDying: false, // New state for death phase
         };
     })());
 
@@ -76,11 +77,11 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
         
         // Update life (much slower rate)
         state.current.life += speed * 0.01;
-        if (state.current.life >= state.current.maxLife) {
-            state.current.isDead = true;
+        if (state.current.life >= state.current.maxLife && !state.current.isDying) {
+            state.current.isDying = true; // Enter death phase, but keep moving
         }
         
-        // Handle death and respawn
+        // Handle full death and respawn (only after trail is consumed)
         if (state.current.isDead) {
             const angle = Math.random() * Math.PI * 2;
             const x = Math.cos(angle) * faceRadius;
@@ -97,6 +98,7 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
             state.current.life = 0;
             state.current.maxLife = maxLifespan * (0.5 + Math.random() * 0.5);
             state.current.isDead = false;
+            state.current.isDying = false;
             return;
         }
         
@@ -165,9 +167,22 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
             return;
         }
         
-        // Always build trail (no delay)
-        trail.push(state.current.currentPosition.clone());
-        if (trail.length > MAX_TRAIL_LENGTH) trail.shift();
+        // Handle trail building based on life state
+        if (state.current.isDying) {
+            // DYING PHASE: Stop adding new positions, consume from tail
+            if (trail.length > 0) {
+                trail.shift(); // Remove from tail, creating "consumption" effect
+            }
+            
+            // When trail is fully consumed, mark as dead for respawn
+            if (trail.length === 0) {
+                state.current.isDead = true;
+            }
+        } else {
+            // LIVING PHASE: Normal trail building
+            trail.push(state.current.currentPosition.clone());
+            if (trail.length > MAX_TRAIL_LENGTH) trail.shift();
+        }
         
         // Update trail geometry
         if (trailRef.current && trail.length >= 2) {

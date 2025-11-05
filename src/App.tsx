@@ -77,12 +77,22 @@ function Scene({
         trailRadius,
     } = useTrailControls();
 
-    // Force trail initialization after mount
+    // Force trail initialization after mount - multiple attempts
     const [kickstart, setKickstart] = useState(0);
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setKickstart(0.001); // Tiny change to trailSpeed to trigger render
-        }, 100);
+        let attempt = 0;
+        const maxAttempts = 5;
+        
+        const tryKickstart = () => {
+            attempt++;
+            setKickstart(attempt * 0.001); // Increment slightly each time
+            
+            if (attempt < maxAttempts) {
+                setTimeout(tryKickstart, 200); // Try again after 200ms
+            }
+        };
+        
+        const timer = setTimeout(tryKickstart, 100);
         return () => clearTimeout(timer);
     }, []);
 

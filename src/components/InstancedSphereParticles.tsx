@@ -425,42 +425,39 @@ export function InstancedSphereParticles({
             Math.cos(angle * 3),
         ];
 
-        // Single triangle geometry that will be instanced
+        // Double triangle geometry (like The Spirit) - two overlapping triangles with different orientations
         const vertices = new Float32Array([
-            angles[0],
-            angles[1],
-            0, // vertex 1
-            angles[2],
-            angles[3],
-            0, // vertex 2
-            angles[4],
-            angles[5],
-            0, // vertex 3
+            // First triangle (orientation A)
+            angles[0], angles[1], 0,
+            angles[2], angles[3], 0,
+            angles[4], angles[5], 0,
+            // Second triangle (orientation B)
+            angles[6], angles[7], 0,
+            angles[8], angles[9], 0,
+            angles[10], angles[11], 0,
         ]);
 
         const verticesFlip = new Float32Array([
-            angles[6],
-            angles[7],
-            0, // vertex 1 flipped
-            angles[8],
-            angles[9],
-            0, // vertex 2 flipped
-            angles[10],
-            angles[11],
-            0, // vertex 3 flipped
+            // First triangle flips to orientation B
+            angles[6], angles[7], 0,
+            angles[8], angles[9], 0,
+            angles[10], angles[11], 0,
+            // Second triangle flips to orientation A
+            angles[0], angles[1], 0,
+            angles[2], angles[3], 0,
+            angles[4], angles[5], 0,
         ]);
 
         const uvs = new Float32Array([
-            0.5,
-            1.0, // top
-            0.0,
-            0.0, // bottom left
-            1.0,
-            0.0, // bottom right
+            // UVs for both triangles
+            0.5, 1.0, 0.0, 0.0, 1.0, 0.0, // first triangle
+            0.5, 1.0, 0.0, 0.0, 1.0, 0.0, // second triangle
         ]);
 
         const normals = new Float32Array([
-            0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+            // Normals for both triangles
+            0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, // first triangle
+            0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, // second triangle
         ]);
 
         geometry.setAttribute(
@@ -702,10 +699,10 @@ export function InstancedSphereParticles({
         currentMaterial.uniforms.uChromaColor3.value = hexToColor(chromaColor3);
         currentMaterial.uniforms.uChromaBlendMode.value = chromaBlendMode === "additive" ? 0 : chromaBlendMode === "multiply" ? 1 : chromaBlendMode === "screen" ? 2 : 3;
 
-        // Simple triangle flipping for triangle mode (no complex controls)
+        // Triangle morphing for triangle mode
         if (defaultMode === "triangles" && triangleShaderMaterial) {
-            // Simple rapid flip animation
-            const flipRatio = Math.floor(time * 60) % 2;
+            // Much slower, subtle animation
+            const flipRatio = Math.floor(time * 0.5) % 2; // Flip every 2 seconds
             triangleShaderMaterial.uniforms.uFlipRatio.value = flipRatio;
         }
 
