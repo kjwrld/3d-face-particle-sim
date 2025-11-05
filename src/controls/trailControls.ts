@@ -19,14 +19,14 @@ export function useTrailControls() {
 
         // Animation Controls
         trailSpeed: {
-            value: 1.5,
+            value: 1.3,
             step: 0.05,
             min: 1.0,
             max: 2.0,
             label: "Trail Speed",
         },
         trailHeight: {
-            value: 1.8,
+            value: 1,
             step: 0.1,
             min: 1.0,
             max: 8.0,
@@ -35,7 +35,7 @@ export function useTrailControls() {
 
         // Lifecycle Controls
         maxLifespan: {
-            value: 1,
+            value: 0.5,
             step: 0.5,
             min: 0.5,
             max: 10,

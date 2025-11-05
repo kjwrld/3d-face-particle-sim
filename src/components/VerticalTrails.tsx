@@ -198,7 +198,8 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
             const colors = new Float32Array(
                 trail.flatMap((_, i) => {
                     const alpha = (1 - i / trail.length) * trailIntensity;
-                    return [1, 1, 1, alpha]; // White with fading alpha
+                    const color = new THREE.Color(trailColors.color1);
+                    return [color.r, color.g, color.b, alpha]; // Use actual trail color with fading alpha
                 })
             );
             
@@ -218,9 +219,8 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
         <line>
             <bufferGeometry ref={trailRef} />
             <lineBasicMaterial
-                color="white"
+                vertexColors
                 transparent
-                opacity={trailIntensity}
                 depthWrite={false}
                 blending={THREE.AdditiveBlending}
             />
