@@ -31,7 +31,7 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
         const angle = Math.random() * Math.PI * 2;
         const x = Math.cos(angle) * faceRadius;
         const z = Math.sin(angle) * faceRadius;
-        const y = -2 + Math.random() * 1; // Random height in bottom area
+        const y = -2 + Math.random() * (trailHeight + 2); // Random height throughout entire range
         const position = new THREE.Vector3(x, y, z).add(facePosition);
         return {
             currentPosition: position,
@@ -41,6 +41,10 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
             stepsSinceLastTurn: 0,
             minStepsBeforeNextTurn: 2 + Math.floor(Math.random() * 3), // 2-4 steps before can turn again
             lastMoveTime: 0, // Track when we last moved
+            horizontalMovesRemaining: 0, // Track remaining horizontal moves
+            life: 0,
+            maxLife: maxLifespan * (0.5 + Math.random() * 0.5), // 50-100% of maxLifespan
+            isDead: false,
         };
     })());
 
@@ -70,6 +74,31 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
         // Increment frames since reset
         state.current.framesSinceReset++;
         
+        // Update life (much slower rate)
+        state.current.life += speed * 0.01;
+        if (state.current.life >= state.current.maxLife) {
+            state.current.isDead = true;
+        }
+        
+        // Handle death and respawn
+        if (state.current.isDead) {
+            const angle = Math.random() * Math.PI * 2;
+            const x = Math.cos(angle) * faceRadius;
+            const z = Math.sin(angle) * faceRadius;
+            const y = -2 + Math.random() * (trailHeight + 2); // Random height throughout entire range
+            const newPosition = new THREE.Vector3(x, y, z).add(facePosition);
+            state.current.currentPosition = newPosition;
+            state.current.trail = [];
+            state.current.framesSinceReset = 0;
+            state.current.lastDirection = MovementDirection.UP;
+            state.current.stepsSinceLastTurn = 0;
+            state.current.minStepsBeforeNextTurn = 2 + Math.floor(Math.random() * 3);
+            state.current.horizontalMovesRemaining = 0;
+            state.current.life = 0;
+            state.current.maxLife = maxLifespan * (0.5 + Math.random() * 0.5);
+            state.current.isDead = false;
+            return;
+        }
         
         // Simple frame-based speed control
         if (state.current.framesSinceReset % Math.ceil(60 / (speed * 10)) !== 0) {
@@ -79,20 +108,26 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
         // Decide next movement direction
         let nextDirection = MovementDirection.UP; // Default: always move up
         
-        // Can only turn left/right if:
+        // If we still have horizontal moves remaining, continue in that direction
+        if (state.current.horizontalMovesRemaining > 0) {
+            nextDirection = state.current.lastDirection;
+            state.current.horizontalMovesRemaining--;
+        }
+        // Can only start turning left/right if:
         // 1. Last direction was UP
         // 2. Enough steps have passed since last turn
-        // 3. Random chance (20%)
-        if (state.current.lastDirection === MovementDirection.UP && 
+        // 3. Random chance (30% - increased from 20%)
+        else if (state.current.lastDirection === MovementDirection.UP && 
             state.current.stepsSinceLastTurn >= state.current.minStepsBeforeNextTurn &&
-            Math.random() < 0.2) {
+            Math.random() < 0.3) {
             
-            // Randomly choose left or right
+            // Randomly choose left or right and set to move 2 times
             nextDirection = Math.random() < 0.5 ? MovementDirection.LEFT : MovementDirection.RIGHT;
+            state.current.horizontalMovesRemaining = 1; // Will move 2 times total (this move + 1 more)
             state.current.stepsSinceLastTurn = 0;
             state.current.minStepsBeforeNextTurn = 2 + Math.floor(Math.random() * 3);
         } else {
-            // If last move was LEFT or RIGHT, must move UP
+            // Default: move UP
             nextDirection = MovementDirection.UP;
             state.current.stepsSinceLastTurn++;
         }
@@ -124,20 +159,10 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
         state.current.currentPosition = nextPosition;
         state.current.lastDirection = nextDirection;
         
-        // Reset if too high
-        if (state.current.currentPosition.y > facePosition.y + trailHeight) {
-            const angle = Math.random() * Math.PI * 2;
-            const x = Math.cos(angle) * faceRadius;
-            const z = Math.sin(angle) * faceRadius;
-            const y = -2 + Math.random() * 1; // Random height in bottom area
-            const newPosition = new THREE.Vector3(x, y, z).add(facePosition);
-            state.current.currentPosition = newPosition;
-            state.current.trail = []; // Start completely fresh
-            state.current.framesSinceReset = 0; // Reset frame counter
-            state.current.lastDirection = MovementDirection.UP; // Reset direction
-            state.current.stepsSinceLastTurn = 0; // Reset turn counter
-            state.current.minStepsBeforeNextTurn = 2 + Math.floor(Math.random() * 3); // New turn requirement
-            return; // Skip this frame to prevent any artifact
+        // Optional: Kill trail if it goes too high (backup death condition)
+        if (state.current.currentPosition.y > facePosition.y + trailHeight + 1) {
+            state.current.isDead = true;
+            return;
         }
         
         // Always build trail (no delay)

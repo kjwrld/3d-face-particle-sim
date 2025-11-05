@@ -10,7 +10,7 @@ export function useTrailControls() {
 
         // Performance Controls
         trailCount: {
-            value: 45,
+            value: 15,
             step: 5,
             min: 0,
             max: 150,
