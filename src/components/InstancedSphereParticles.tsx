@@ -17,6 +17,9 @@ import {
     Float32BufferAttribute,
 } from "three";
 
+// Helper function to convert hex to Three.js Color
+const hexToColor = (hex: string) => new Color(hex);
+
 // Import shaders
 import vertexShader from "../shaders/instancedParticles.vert?raw";
 import fragmentShader from "../shaders/instancedParticles.frag?raw";
@@ -151,6 +154,55 @@ export function InstancedSphereParticles({
         label: 'Rotation Easing Speed'
     };
 
+    // Chroma effects controls
+    controlsConfig.chromaEnabled = {
+        value: true,
+        label: "Chroma Effects",
+    };
+    controlsConfig.chromaIntensity = {
+        value: 2.0,
+        step: 0.1,
+        min: 0.0,
+        max: 2.0,
+        label: "Chroma Intensity",
+    };
+    controlsConfig.chromaSeparation = {
+        value: 0.01,
+        step: 0.001,
+        min: 0.0,
+        max: 0.01,
+        label: "Chroma Separation",
+    };
+    controlsConfig.chromaStartPhase = {
+        value: 0.7,
+        step: 0.05,
+        min: 0.5,
+        max: 0.9,
+        label: "Chroma Start Phase",
+    };
+    controlsConfig.chromaColor1 = {
+        value: "#e900ff",
+        label: "Chroma Color 1",
+    };
+    controlsConfig.chromaColor2 = {
+        value: "#00ffec",
+        label: "Chroma Color 2",
+    };
+    controlsConfig.chromaColor3 = {
+        value: "#ffffff",
+        label: "Chroma Color 3",
+    };
+    controlsConfig.chromaBlendMode = {
+        value: "additive",
+        options: {
+            "Additive": "additive",
+            "Multiply": "multiply",
+            "Screen": "screen",
+            "Overlay": "overlay",
+        },
+        label: "Chroma Blend Mode",
+    };
+
     // Background color control
     controlsConfig.backgroundColor = { 
         value: '#101010',
@@ -173,6 +225,14 @@ export function InstancedSphereParticles({
         mouseRotationEnabled,
         rotationSensitivity,
         rotationEasing,
+        chromaEnabled,
+        chromaIntensity,
+        chromaSeparation,
+        chromaStartPhase,
+        chromaColor1,
+        chromaColor2,
+        chromaColor3,
+        chromaBlendMode,
         backgroundColor,
     } = controls;
 
@@ -440,6 +500,16 @@ export function InstancedSphereParticles({
                 // Lighting uniforms
                 uBrightness: { value: brightness },
                 uAmbientLight: { value: ambientLight },
+
+                // Chroma effect uniforms
+                uChromaEnabled: { value: chromaEnabled },
+                uChromaIntensity: { value: chromaIntensity },
+                uChromaSeparation: { value: chromaSeparation },
+                uChromaStartPhase: { value: chromaStartPhase },
+                uChromaColor1: { value: hexToColor(chromaColor1) },
+                uChromaColor2: { value: hexToColor(chromaColor2) },
+                uChromaColor3: { value: hexToColor(chromaColor3) },
+                uChromaBlendMode: { value: chromaBlendMode === "additive" ? 0 : chromaBlendMode === "multiply" ? 1 : chromaBlendMode === "screen" ? 2 : 3 },
             },
             vertexShader,
             fragmentShader,
@@ -465,6 +535,16 @@ export function InstancedSphereParticles({
                 // Lighting uniforms
                 uBrightness: { value: brightness },
                 uAmbientLight: { value: ambientLight },
+
+                // Chroma effect uniforms
+                uChromaEnabled: { value: chromaEnabled },
+                uChromaIntensity: { value: chromaIntensity },
+                uChromaSeparation: { value: chromaSeparation },
+                uChromaStartPhase: { value: chromaStartPhase },
+                uChromaColor1: { value: hexToColor(chromaColor1) },
+                uChromaColor2: { value: hexToColor(chromaColor2) },
+                uChromaColor3: { value: hexToColor(chromaColor3) },
+                uChromaBlendMode: { value: chromaBlendMode === "additive" ? 0 : chromaBlendMode === "multiply" ? 1 : chromaBlendMode === "screen" ? 2 : 3 },
             },
             vertexShader,
             fragmentShader,
@@ -611,6 +691,16 @@ export function InstancedSphereParticles({
         currentMaterial.uniforms.uAnimationSpeed.value = animationSpeed;
         currentMaterial.uniforms.uBrightness.value = brightness;
         currentMaterial.uniforms.uAmbientLight.value = ambientLight;
+
+        // Update chroma effect uniforms
+        currentMaterial.uniforms.uChromaEnabled.value = chromaEnabled;
+        currentMaterial.uniforms.uChromaIntensity.value = chromaIntensity;
+        currentMaterial.uniforms.uChromaSeparation.value = chromaSeparation;
+        currentMaterial.uniforms.uChromaStartPhase.value = chromaStartPhase;
+        currentMaterial.uniforms.uChromaColor1.value = hexToColor(chromaColor1);
+        currentMaterial.uniforms.uChromaColor2.value = hexToColor(chromaColor2);
+        currentMaterial.uniforms.uChromaColor3.value = hexToColor(chromaColor3);
+        currentMaterial.uniforms.uChromaBlendMode.value = chromaBlendMode === "additive" ? 0 : chromaBlendMode === "multiply" ? 1 : chromaBlendMode === "screen" ? 2 : 3;
 
         // Simple triangle flipping for triangle mode (no complex controls)
         if (defaultMode === "triangles" && triangleShaderMaterial) {

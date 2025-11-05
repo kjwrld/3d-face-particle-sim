@@ -1,4 +1,4 @@
-import { useState, memo, Suspense } from "react";
+import { useState, memo, Suspense, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { useControls } from "leva";
@@ -7,6 +7,9 @@ import { ModernSphereParticles } from "./components/ModernSphereParticles";
 import { TriangleParticles } from "./components/TriangleParticles";
 import { SimpleFaceLighting } from "./components/SimpleFaceLighting";
 import { SimpleEnvironment } from "./components/SimpleEnvironment";
+import { VerticalTrails } from "./components/VerticalTrails";
+import { useTrailControls } from "./controls/trailControls";
+import { Vector3 } from "three";
 import "./App.css";
 
 const FaceModel = memo(() => {
@@ -60,11 +63,49 @@ function Scene({
         | "city"
         | "apartment";
 }) {
+    // Trail controls
+    const {
+        trailsEnabled,
+        trailCount,
+        trailSpeed,
+        trailHeight,
+        trailIntensity,
+        maxLifespan,
+        trailColor1,
+        trailColor2,
+        trailColor3,
+        trailRadius,
+    } = useTrailControls();
+
+    // Force trail initialization after mount
+    const [kickstart, setKickstart] = useState(0);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setKickstart(0.001); // Tiny change to trailSpeed to trigger render
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
+
     return (
         <>
             <SimpleFaceLighting preset={lightingPreset} />
             <SimpleEnvironment preset={environmentPreset} />
             <FaceModel />
+            <VerticalTrails
+                facePosition={new Vector3(0, 0, 0)}
+                faceScale={trailRadius}
+                trailsEnabled={trailsEnabled}
+                trailCount={trailCount}
+                trailSpeed={trailSpeed + kickstart}
+                trailHeight={trailHeight}
+                trailIntensity={trailIntensity}
+                maxLifespan={maxLifespan}
+                trailColors={{
+                    color1: trailColor1,
+                    color2: trailColor2,
+                    color3: trailColor3,
+                }}
+            />
             <Controls />
         </>
     );
