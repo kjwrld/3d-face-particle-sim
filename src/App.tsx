@@ -1,4 +1,4 @@
-import { useState, memo, Suspense, useEffect } from "react";
+import { useState, memo, Suspense, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { TriangleParticles } from "./components/TriangleParticles";
@@ -10,12 +10,14 @@ import { useTrailControls } from "./controls/trailControls";
 import { Vector3 } from "three";
 import "./App.css";
 
-const FaceModel = memo(() => {
+const FaceModel = memo(({ onRevealComplete }: { onRevealComplete: () => void }) => {
     return (
         <Suspense fallback={null}>
-            <TriangleParticles />
-            {/* BVH Face Mesh for testing - positioned slightly behind particles */}
-            <BVHFaceMesh 
+            {/* Particle reveal prototype - shader-based reveal animation */}
+            <TriangleParticles onRevealComplete={onRevealComplete} />
+            
+            {/* Wireframe animation - commented out for prototype */}
+            {/* <BVHFaceMesh 
                 position={[0, 0, -0.1]}
                 wireframe={true}
                 color="#ffffff"
@@ -23,9 +25,9 @@ const FaceModel = memo(() => {
                 transparent={true}
                 useAnimatedReveal={true}
                 autoStartReveal={true}
-                revealDuration={3.0}
-                revealLoop={false}
-            />
+                revealDuration={2.0}
+                revealLoop={true}
+            /> */}
         </Suspense>
     );
 });
@@ -54,6 +56,16 @@ function Scene({
         | "city"
         | "apartment";
 }) {
+    const [showTrails, setShowTrails] = useState(false);
+    
+    // Simple timer to start trails after 3 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowTrails(true);
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, []);
+    
     // Trail controls
     const {
         trailsEnabled,
@@ -71,9 +83,11 @@ function Scene({
         tubeSmoothness,
     } = useTrailControls();
 
-    // Force trail initialization after mount - multiple attempts
+    // Force trail initialization when trails should show - multiple attempts
     const [kickstart, setKickstart] = useState(0);
     useEffect(() => {
+        if (!showTrails) return; // Only kickstart when trails should be visible
+        
         let attempt = 0;
         const maxAttempts = 5;
         
@@ -88,17 +102,17 @@ function Scene({
         
         const timer = setTimeout(tryKickstart, 100);
         return () => clearTimeout(timer);
-    }, []);
+    }, [showTrails]);
 
     return (
         <>
             <SimpleFaceLighting preset={lightingPreset} />
             <SimpleEnvironment preset={environmentPreset} />
-            <FaceModel />
+            <FaceModel onRevealComplete={() => {}} />
             <VerticalTrails
                 facePosition={new Vector3(0, 0, 0)}
                 faceScale={trailRadius}
-                trailsEnabled={trailsEnabled}
+                trailsEnabled={showTrails && trailsEnabled}
                 trailCount={trailCount}
                 trailSpeed={trailSpeed + kickstart}
                 trailHeight={trailHeight}

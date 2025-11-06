@@ -7,6 +7,14 @@ uniform float uParticleScale;
 uniform float uAnimationSpeed;
 uniform float uBrightness;
 uniform float uAmbientLight;
+uniform float uMasterOpacity;
+
+// Reveal animation uniforms
+uniform float uRevealProgress;
+uniform float uRevealHeight;
+uniform float uFadeZone;
+uniform float uModelHeight;
+uniform float uModelBottom;
 
 // Chroma effect uniforms
 uniform bool uChromaEnabled;
@@ -23,6 +31,7 @@ varying vec2 vInstanceUV;
 varying vec4 vLifeData; // life, maxLife, isEmissive, scale
 varying vec3 vNormal;
 varying vec3 vViewPosition;
+varying vec3 vWorldPosition;
 
 // Utility functions
 float linearStep(float edge0, float edge1, float x) {
@@ -30,6 +39,18 @@ float linearStep(float edge0, float edge1, float x) {
 }
 
 void main() {
+    // Calculate reveal factor based on world Y position (top-to-bottom reveal)
+    float relativeHeight = (vWorldPosition.y - uModelBottom) / (uModelHeight - uModelBottom);
+    
+    // Top-to-bottom reveal: reveal starts from top (high Y) to bottom (low Y)
+    float topDownThreshold = 1.0 - uRevealProgress;
+    float revealFactor = smoothstep(topDownThreshold - uFadeZone * 0.5, topDownThreshold + uFadeZone * 0.5, relativeHeight);
+    
+    // Early discard for particles not yet revealed
+    if (revealFactor <= 0.0) {
+        discard;
+    }
+
     // Sample the face texture at UV coordinates
     vec3 faceColor = texture2D(uTexture, vInstanceUV).rgb;
     
@@ -115,6 +136,6 @@ void main() {
     // Apply lighting and brightness to face color
     vec3 litColor = faceColor * lightIntensity * uBrightness;
     
-    // Apply alpha fade
-    gl_FragColor = vec4(litColor, alpha);
+    // Apply alpha fade with master opacity and reveal factor
+    gl_FragColor = vec4(litColor, alpha * uMasterOpacity * revealFactor);
 }

@@ -36,8 +36,12 @@ import type { ParticleData } from "../types/particleTypes";
 
 export function InstancedSphereParticles({
     defaultMode = "spheres",
+    opacity = 1.0,
+    onRevealComplete,
 }: {
     defaultMode?: "triangles" | "spheres";
+    opacity?: number;
+    onRevealComplete?: () => void;
 }) {
     const meshRef = useRef<InstancedMesh>(null);
     const particlesRef = useRef<ParticleData[]>([]);
@@ -229,6 +233,25 @@ export function InstancedSphereParticles({
         };
     }, [gltf, particleDensity, surfaceSampling]);
 
+    // Calculate model bounds for reveal animation (move this before materials)
+    const modelBounds = useMemo(() => {
+        if (!extractedData) return { height: 2, bottom: -1, top: 1 };
+        
+        let minY = Infinity;
+        let maxY = -Infinity;
+        
+        extractedData.positions.forEach(pos => {
+            minY = Math.min(minY, pos.y);
+            maxY = Math.max(maxY, pos.y);
+        });
+        
+        return {
+            height: maxY - minY,
+            bottom: minY,
+            top: maxY,
+        };
+    }, [extractedData]);
+
     // Create sphere geometry for instancing
     const sphereGeometry = useMemo(() => {
         const { WIDTH, HEIGHT } =
@@ -340,6 +363,14 @@ export function InstancedSphereParticles({
                 // Lighting uniforms
                 uBrightness: { value: brightness },
                 uAmbientLight: { value: ambientLight },
+                uMasterOpacity: { value: opacity },
+
+                // Reveal animation uniforms
+                uRevealProgress: { value: 0.0 },
+                uRevealHeight: { value: 0.0 },
+                uFadeZone: { value: 0.15 },
+                uModelHeight: { value: modelBounds.top },
+                uModelBottom: { value: modelBounds.bottom },
 
                 // Chroma effect uniforms
                 uChromaEnabled: { value: chromaEnabled },
@@ -355,7 +386,7 @@ export function InstancedSphereParticles({
             fragmentShader,
             transparent: true,
         });
-    }, [texture, particleScale, animationSpeed]);
+    }, [texture, particleScale, animationSpeed, opacity, modelBounds]);
 
     const triangleShaderMaterial = useMemo(() => {
         if (!texture) return null;
@@ -375,6 +406,14 @@ export function InstancedSphereParticles({
                 // Lighting uniforms
                 uBrightness: { value: brightness },
                 uAmbientLight: { value: ambientLight },
+                uMasterOpacity: { value: opacity },
+
+                // Reveal animation uniforms
+                uRevealProgress: { value: 0.0 },
+                uRevealHeight: { value: 0.0 },
+                uFadeZone: { value: 0.15 },
+                uModelHeight: { value: modelBounds.top },
+                uModelBottom: { value: modelBounds.bottom },
 
                 // Chroma effect uniforms
                 uChromaEnabled: { value: chromaEnabled },
@@ -390,7 +429,7 @@ export function InstancedSphereParticles({
             fragmentShader,
             transparent: true,
         });
-    }, [texture, particleScale, animationSpeed, brightness, ambientLight]);
+    }, [texture, particleScale, animationSpeed, brightness, ambientLight, opacity, modelBounds]);
 
     // Choose material based on default mode
     const currentMaterial =
@@ -400,6 +439,12 @@ export function InstancedSphereParticles({
 
     // Get the actual particle count from extracted data
     const actualParticleCount = extractedData?.count || 0;
+    
+    // Animation state for reveal prototype
+    const [revealStartTime, setRevealStartTime] = useState<number | null>(null);
+    const [revealCompleted, setRevealCompleted] = useState(false);
+    const REVEAL_DURATION = 3.0; // 3 seconds for full reveal
+
 
     // Particle count info (removed from Leva controls)
 
@@ -521,6 +566,7 @@ export function InstancedSphereParticles({
         currentMaterial.uniforms.uAnimationSpeed.value = animationSpeed;
         currentMaterial.uniforms.uBrightness.value = brightness;
         currentMaterial.uniforms.uAmbientLight.value = ambientLight;
+        currentMaterial.uniforms.uMasterOpacity.value = opacity;
 
         // Update chroma effect uniforms
         currentMaterial.uniforms.uChromaEnabled.value = chromaEnabled;
@@ -531,6 +577,27 @@ export function InstancedSphereParticles({
         currentMaterial.uniforms.uChromaColor2.value = hexToColor(chromaColor2);
         currentMaterial.uniforms.uChromaColor3.value = hexToColor(chromaColor3);
         currentMaterial.uniforms.uChromaBlendMode.value = chromaBlendMode === "additive" ? 0 : chromaBlendMode === "multiply" ? 1 : chromaBlendMode === "screen" ? 2 : 3;
+
+        // Reveal animation prototype
+        // Initialize reveal start time
+        if (revealStartTime === null) {
+            setRevealStartTime(state.clock.elapsedTime);
+        }
+        
+        // Calculate reveal progress (0.0 to 1.0)
+        const elapsed = state.clock.elapsedTime - revealStartTime;
+        const revealProgress = Math.min(elapsed / REVEAL_DURATION, 1.0);
+        
+        // Check if reveal just completed
+        if (revealProgress >= 1.0 && !revealCompleted) {
+            setRevealCompleted(true);
+            onRevealComplete?.();
+        }
+        
+        // Update reveal uniforms
+        currentMaterial.uniforms.uRevealProgress.value = revealProgress;
+        currentMaterial.uniforms.uModelHeight.value = modelBounds.top;
+        currentMaterial.uniforms.uModelBottom.value = modelBounds.bottom;
 
         // Triangle morphing for triangle mode
         if (defaultMode === "triangles" && triangleShaderMaterial) {

@@ -46,6 +46,8 @@ export interface BVHFaceMeshProps {
     revealDuration?: number;
     /** Whether reveal animation should loop */
     revealLoop?: boolean;
+    /** Callback for animation phase changes */
+    onAnimationPhaseChange?: (phase: 'reveal' | 'hold' | 'disappear', progress: number) => void;
 }
 
 /**
@@ -68,6 +70,7 @@ export function BVHFaceMesh({
     autoStartReveal = true,
     revealDuration = 3.0,
     revealLoop = true,
+    onAnimationPhaseChange,
 }: BVHFaceMeshProps) {
     const meshRef = useRef<THREE.Mesh>(null);
     const bvhHelperRef = useRef<THREE.Object3D>(null);
@@ -220,6 +223,7 @@ export function BVHFaceMesh({
                     receiveShadow={receiveShadow}
                     visible={visible}
                     onAnimationComplete={() => setInitialAnimationComplete(true)}
+                    onAnimationPhaseChange={onAnimationPhaseChange}
                 />
             )}
             

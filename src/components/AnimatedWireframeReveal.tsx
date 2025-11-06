@@ -89,6 +89,9 @@ export interface AnimatedWireframeRevealProps {
     /** Callback when animation completes */
     onAnimationComplete?: () => void;
     
+    /** Callback for animation phase changes */
+    onAnimationPhaseChange?: (phase: 'reveal' | 'hold' | 'disappear', progress: number) => void;
+    
     /** Whether to cast shadows */
     castShadow?: boolean;
     
@@ -135,6 +138,7 @@ export function AnimatedWireframeReveal({
     loop = REVEAL_ANIMATION_CONFIG.LOOP,
     duration = REVEAL_ANIMATION_CONFIG.DURATION,
     onAnimationComplete,
+    onAnimationPhaseChange,
     castShadow = false,
     receiveShadow = false,
     visible = true,
@@ -247,6 +251,7 @@ export function AnimatedWireframeReveal({
             revealHeight = easedProgress;
             setAnimationProgress(easedProgress);
             materialRef.current.uniforms.uIsDisappearing.value = false;
+            onAnimationPhaseChange?.('reveal', easedProgress);
             
         } else if (elapsed <= REVEAL_ANIMATION_CONFIG.REVEAL_DURATION + REVEAL_ANIMATION_CONFIG.HOLD_DURATION) {
             // HOLD PHASE: stay at 1
@@ -254,6 +259,7 @@ export function AnimatedWireframeReveal({
             revealHeight = 1.0;
             setAnimationProgress(1.0);
             materialRef.current.uniforms.uIsDisappearing.value = false;
+            onAnimationPhaseChange?.('hold', 1.0);
             
         } else if (elapsed <= totalCycleDuration) {
             // DISAPPEAR PHASE: top-to-bottom disappear
@@ -266,6 +272,7 @@ export function AnimatedWireframeReveal({
             revealHeight = 1.0 - easedProgress;
             setAnimationProgress(easedProgress);
             materialRef.current.uniforms.uIsDisappearing.value = true;
+            onAnimationPhaseChange?.('disappear', easedProgress);
             
         } else {
             // CYCLE COMPLETE

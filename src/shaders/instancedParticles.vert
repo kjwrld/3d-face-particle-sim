@@ -14,11 +14,19 @@ uniform float uAnimationSpeed;
 uniform float uFlipRatio;
 uniform bool uUseTriangles;
 
+// Reveal animation uniforms
+uniform float uRevealProgress;
+uniform float uRevealHeight;
+uniform float uFadeZone;
+uniform float uModelHeight;
+uniform float uModelBottom;
+
 // Varyings to fragment shader
 varying vec2 vInstanceUV;
 varying vec4 vLifeData;
 varying vec3 vNormal;
 varying vec3 vViewPosition;
+varying vec3 vWorldPosition;
 
 void main() {
     // Pass instance data to fragment shader
@@ -37,6 +45,10 @@ void main() {
     
     // Transform vertex position with instance matrix
     vec4 instancePosition = instanceMatrix * vec4(vertexPosition, 1.0);
+    
+    // Calculate world position for reveal animation
+    vec4 worldPosition = modelMatrix * instancePosition;
+    vWorldPosition = worldPosition.xyz;
     
     // Calculate view position for lighting calculations
     vec4 mvPosition = modelViewMatrix * instancePosition;
