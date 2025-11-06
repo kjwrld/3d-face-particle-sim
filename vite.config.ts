@@ -9,13 +9,23 @@ export default defineConfig({
     include: ['three', '@react-three/fiber', '@react-three/drei']
   },
   build: {
+    target: 'esnext',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.logs in production
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: {
           three: ['three'],
-          'react-three': ['@react-three/fiber', '@react-three/drei']
+          'react-three': ['@react-three/fiber', '@react-three/drei'],
+          leva: ['leva']
         }
       }
-    }
+    },
+    chunkSizeWarningLimit: 1000, // Increase limit for 3D assets
   }
 })
