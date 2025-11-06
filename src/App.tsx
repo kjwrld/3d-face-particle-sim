@@ -6,7 +6,9 @@ import { BVHFaceMesh } from "./components/BVHFaceMesh";
 import { SimpleFaceLighting } from "./components/SimpleFaceLighting";
 import { SimpleEnvironment } from "./components/SimpleEnvironment";
 import { VerticalTrails } from "./components/VerticalTrails";
+import { ToneMappingPass } from "./components/ToneMappingPass";
 import { useTrailControls } from "./controls/trailControls";
+import { useControls } from "leva";
 import { Vector3 } from "three";
 import "./App.css";
 
@@ -57,7 +59,7 @@ function Scene({
         | "apartment";
 }) {
     const [showTrails, setShowTrails] = useState(false);
-    
+
     // Simple timer to start trails after 3 seconds
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -65,7 +67,29 @@ function Scene({
         }, 3000);
         return () => clearTimeout(timer);
     }, []);
-    
+
+    // Tone mapping controls (not collapsed by default)
+    const toneMappingControls = useControls('Tone Mapping', {
+        toneMappingEnabled: {
+            value: true,
+            label: 'Enable Tone Mapping',
+        },
+        acesPreMultiply: {
+            value: 1.0,
+            min: 0.1,
+            max: 2.0,
+            step: 0.05,
+            label: 'ACES Pre-Multiply',
+        },
+        gammaPower: {
+            value: 1.3,
+            min: 1.0,
+            max: 3.0,
+            step: 0.1,
+            label: 'Gamma Power',
+        },
+    });
+
     // Trail controls
     const {
         trailsEnabled,
@@ -128,6 +152,14 @@ function Scene({
                 tubeSmoothness={tubeSmoothness}
             />
             <Controls />
+
+            {/* Scene-wide tone mapping post-processing */}
+            {toneMappingControls.toneMappingEnabled && (
+                <ToneMappingPass
+                    acesPreMultiply={toneMappingControls.acesPreMultiply}
+                    gammaPower={toneMappingControls.gammaPower}
+                />
+            )}
         </>
     );
 }

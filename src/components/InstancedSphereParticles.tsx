@@ -2,7 +2,7 @@ import { useRef, useEffect, useMemo, useState } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { getDracoLoader } from "../utils/loaders";
-// Removed useControls import - using constants instead
+import { useControls, folder } from "leva";
 import {
     ShaderMaterial,
     BufferGeometry,
@@ -47,11 +47,11 @@ export function InstancedSphereParticles({
     const particlesRef = useRef<ParticleData[]>([]);
     const dummy = useMemo(() => new Object3D(), []);
     const { gl } = useThree();
-    
+
     // Simple mouse tracking for model rotation
     const [isMouseOnScreen, setIsMouseOnScreen] = useState(true);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    
+
     // Smooth rotation interpolation
     const currentRotation = useRef({ x: 0, y: 0 });
     const targetRotation = useRef({ x: 0, y: 0 });
@@ -82,6 +82,35 @@ export function InstancedSphereParticles({
         chromaBlendMode,
         backgroundColor,
     } = PARTICLE_SYSTEM_CONFIG;
+
+    // Particle appearance controls
+    const particleAppearanceControls = useControls(
+        "Particle Appearance",
+        {
+            Lighting: folder({
+                brightness: {
+                    value: 1.5,
+                    min: 0,
+                    max: 5,
+                    step: 0.1,
+                    label: "Brightness",
+                },
+                ambientLight: {
+                    value: 0.65,
+                    min: 0,
+                    max: 1,
+                    step: 0.05,
+                    label: "Ambient Light",
+                },
+            }),
+            "Chroma Colors": folder({
+                chromaColor1: { value: "#ffffff", label: "Chroma Color 1" },
+                chromaColor2: { value: "#ffffff", label: "Chroma Color 2" },
+                chromaColor3: { value: "#ffffff", label: "Chroma Color 3" },
+            }),
+        },
+        { collapsed: true }
+    );
 
     // Load the GLTF model
     const gltf = useLoader(GLTFLoader, "/models/kj_face.glb", (loader) => {
@@ -168,7 +197,6 @@ export function InstancedSphereParticles({
                 .crossVectors(v2.clone().sub(v1), v3.clone().sub(v1))
                 .normalize();
 
-
             // Adaptive sampling based on triangle size and user controls
             const area = normal.length();
             const adjustedAreaMultiplier =
@@ -236,15 +264,15 @@ export function InstancedSphereParticles({
     // Calculate model bounds for reveal animation (move this before materials)
     const modelBounds = useMemo(() => {
         if (!extractedData) return { height: 2, bottom: -1, top: 1 };
-        
+
         let minY = Infinity;
         let maxY = -Infinity;
-        
-        extractedData.positions.forEach(pos => {
+
+        extractedData.positions.forEach((pos) => {
             minY = Math.min(minY, pos.y);
             maxY = Math.max(maxY, pos.y);
         });
-        
+
         return {
             height: maxY - minY,
             bottom: minY,
@@ -294,36 +322,86 @@ export function InstancedSphereParticles({
         // Double triangle geometry (like The Spirit) - two overlapping triangles with different orientations
         const vertices = new Float32Array([
             // First triangle (orientation A)
-            angles[0], angles[1], 0,
-            angles[2], angles[3], 0,
-            angles[4], angles[5], 0,
+            angles[0],
+            angles[1],
+            0,
+            angles[2],
+            angles[3],
+            0,
+            angles[4],
+            angles[5],
+            0,
             // Second triangle (orientation B)
-            angles[6], angles[7], 0,
-            angles[8], angles[9], 0,
-            angles[10], angles[11], 0,
+            angles[6],
+            angles[7],
+            0,
+            angles[8],
+            angles[9],
+            0,
+            angles[10],
+            angles[11],
+            0,
         ]);
 
         const verticesFlip = new Float32Array([
             // First triangle flips to orientation B
-            angles[6], angles[7], 0,
-            angles[8], angles[9], 0,
-            angles[10], angles[11], 0,
+            angles[6],
+            angles[7],
+            0,
+            angles[8],
+            angles[9],
+            0,
+            angles[10],
+            angles[11],
+            0,
             // Second triangle flips to orientation A
-            angles[0], angles[1], 0,
-            angles[2], angles[3], 0,
-            angles[4], angles[5], 0,
+            angles[0],
+            angles[1],
+            0,
+            angles[2],
+            angles[3],
+            0,
+            angles[4],
+            angles[5],
+            0,
         ]);
 
         const uvs = new Float32Array([
             // UVs for both triangles
-            0.5, 1.0, 0.0, 0.0, 1.0, 0.0, // first triangle
-            0.5, 1.0, 0.0, 0.0, 1.0, 0.0, // second triangle
+            0.5,
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0, // first triangle
+            0.5,
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0, // second triangle
         ]);
 
         const normals = new Float32Array([
             // Normals for both triangles
-            0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, // first triangle
-            0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, // second triangle
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            1.0, // first triangle
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            1.0, // second triangle
         ]);
 
         geometry.setAttribute(
@@ -361,8 +439,10 @@ export function InstancedSphereParticles({
                 uUseTriangles: { value: false },
 
                 // Lighting uniforms
-                uBrightness: { value: brightness },
-                uAmbientLight: { value: ambientLight },
+                uBrightness: { value: particleAppearanceControls.brightness },
+                uAmbientLight: {
+                    value: particleAppearanceControls.ambientLight,
+                },
                 uMasterOpacity: { value: opacity },
 
                 // Reveal animation uniforms
@@ -377,16 +457,38 @@ export function InstancedSphereParticles({
                 uChromaIntensity: { value: chromaIntensity },
                 uChromaSeparation: { value: chromaSeparation },
                 uChromaStartPhase: { value: chromaStartPhase },
-                uChromaColor1: { value: hexToColor(chromaColor1) },
-                uChromaColor2: { value: hexToColor(chromaColor2) },
-                uChromaColor3: { value: hexToColor(chromaColor3) },
-                uChromaBlendMode: { value: chromaBlendMode === "additive" ? 0 : chromaBlendMode === "multiply" ? 1 : chromaBlendMode === "screen" ? 2 : 3 },
+                uChromaColor1: {
+                    value: hexToColor(particleAppearanceControls.chromaColor1),
+                },
+                uChromaColor2: {
+                    value: hexToColor(particleAppearanceControls.chromaColor2),
+                },
+                uChromaColor3: {
+                    value: hexToColor(particleAppearanceControls.chromaColor3),
+                },
+                uChromaBlendMode: {
+                    value:
+                        chromaBlendMode === "additive"
+                            ? 0
+                            : chromaBlendMode === "multiply"
+                            ? 1
+                            : chromaBlendMode === "screen"
+                            ? 2
+                            : 3,
+                },
             },
             vertexShader,
             fragmentShader,
             transparent: true,
         });
-    }, [texture, particleScale, animationSpeed, opacity, modelBounds]);
+    }, [
+        texture,
+        particleScale,
+        animationSpeed,
+        opacity,
+        modelBounds,
+        particleAppearanceControls,
+    ]);
 
     const triangleShaderMaterial = useMemo(() => {
         if (!texture) return null;
@@ -404,8 +506,10 @@ export function InstancedSphereParticles({
                 uUseTriangles: { value: true },
 
                 // Lighting uniforms
-                uBrightness: { value: brightness },
-                uAmbientLight: { value: ambientLight },
+                uBrightness: { value: particleAppearanceControls.brightness },
+                uAmbientLight: {
+                    value: particleAppearanceControls.ambientLight,
+                },
                 uMasterOpacity: { value: opacity },
 
                 // Reveal animation uniforms
@@ -420,16 +524,38 @@ export function InstancedSphereParticles({
                 uChromaIntensity: { value: chromaIntensity },
                 uChromaSeparation: { value: chromaSeparation },
                 uChromaStartPhase: { value: chromaStartPhase },
-                uChromaColor1: { value: hexToColor(chromaColor1) },
-                uChromaColor2: { value: hexToColor(chromaColor2) },
-                uChromaColor3: { value: hexToColor(chromaColor3) },
-                uChromaBlendMode: { value: chromaBlendMode === "additive" ? 0 : chromaBlendMode === "multiply" ? 1 : chromaBlendMode === "screen" ? 2 : 3 },
+                uChromaColor1: {
+                    value: hexToColor(particleAppearanceControls.chromaColor1),
+                },
+                uChromaColor2: {
+                    value: hexToColor(particleAppearanceControls.chromaColor2),
+                },
+                uChromaColor3: {
+                    value: hexToColor(particleAppearanceControls.chromaColor3),
+                },
+                uChromaBlendMode: {
+                    value:
+                        chromaBlendMode === "additive"
+                            ? 0
+                            : chromaBlendMode === "multiply"
+                            ? 1
+                            : chromaBlendMode === "screen"
+                            ? 2
+                            : 3,
+                },
             },
             vertexShader,
             fragmentShader,
             transparent: true,
         });
-    }, [texture, particleScale, animationSpeed, brightness, ambientLight, opacity, modelBounds]);
+    }, [
+        texture,
+        particleScale,
+        animationSpeed,
+        opacity,
+        modelBounds,
+        particleAppearanceControls,
+    ]);
 
     // Choose material based on default mode
     const currentMaterial =
@@ -439,12 +565,11 @@ export function InstancedSphereParticles({
 
     // Get the actual particle count from extracted data
     const actualParticleCount = extractedData?.count || 0;
-    
+
     // Animation state for reveal prototype
     const [revealStartTime, setRevealStartTime] = useState<number | null>(null);
     const [revealCompleted, setRevealCompleted] = useState(false);
     const REVEAL_DURATION = 3.0; // 3 seconds for full reveal
-
 
     // Particle count info (removed from Leva controls)
 
@@ -461,13 +586,13 @@ export function InstancedSphereParticles({
             // Normalize mouse position to -1 to 1 range
             const x = (event.clientX / window.innerWidth) * 2 - 1; // -1 (left) to 1 (right)
             const y = (event.clientY / window.innerHeight) * 2 - 1; // -1 (top) to 1 (bottom)
-            
+
             // Update target rotation
             targetRotation.current = {
                 x: (y * 0.25 + 0.05) * rotationSensitivity, // -0.2 to 0.3
-                y: (x * 0.3) * rotationSensitivity // -0.3 to 0.3
+                y: x * 0.3 * rotationSensitivity, // -0.3 to 0.3
             };
-            
+
             setMousePosition({ x, y });
             setIsMouseOnScreen(true);
         };
@@ -482,14 +607,14 @@ export function InstancedSphereParticles({
             setIsMouseOnScreen(true);
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseleave', handleMouseLeave);
-        window.addEventListener('mouseenter', handleMouseEnter);
-        
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseleave", handleMouseLeave);
+        window.addEventListener("mouseenter", handleMouseEnter);
+
         return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseleave', handleMouseLeave);
-            window.removeEventListener('mouseenter', handleMouseEnter);
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseleave", handleMouseLeave);
+            window.removeEventListener("mouseenter", handleMouseEnter);
         };
     }, [mouseRotationEnabled, rotationSensitivity]);
 
@@ -556,16 +681,22 @@ export function InstancedSphereParticles({
         // Simple smooth rotation easing toward target
         if (mouseRotationEnabled) {
             // Always ease toward the current target (mouse position or center)
-            currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * rotationEasing;
-            currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * rotationEasing;
+            currentRotation.current.x +=
+                (targetRotation.current.x - currentRotation.current.x) *
+                rotationEasing;
+            currentRotation.current.y +=
+                (targetRotation.current.y - currentRotation.current.y) *
+                rotationEasing;
         }
 
         // Update shader uniforms
         currentMaterial.uniforms.uTime.value = time;
         currentMaterial.uniforms.uParticleScale.value = particleScale;
         currentMaterial.uniforms.uAnimationSpeed.value = animationSpeed;
-        currentMaterial.uniforms.uBrightness.value = brightness;
-        currentMaterial.uniforms.uAmbientLight.value = ambientLight;
+        currentMaterial.uniforms.uBrightness.value =
+            particleAppearanceControls.brightness;
+        currentMaterial.uniforms.uAmbientLight.value =
+            particleAppearanceControls.ambientLight;
         currentMaterial.uniforms.uMasterOpacity.value = opacity;
 
         // Update chroma effect uniforms
@@ -573,27 +704,40 @@ export function InstancedSphereParticles({
         currentMaterial.uniforms.uChromaIntensity.value = chromaIntensity;
         currentMaterial.uniforms.uChromaSeparation.value = chromaSeparation;
         currentMaterial.uniforms.uChromaStartPhase.value = chromaStartPhase;
-        currentMaterial.uniforms.uChromaColor1.value = hexToColor(chromaColor1);
-        currentMaterial.uniforms.uChromaColor2.value = hexToColor(chromaColor2);
-        currentMaterial.uniforms.uChromaColor3.value = hexToColor(chromaColor3);
-        currentMaterial.uniforms.uChromaBlendMode.value = chromaBlendMode === "additive" ? 0 : chromaBlendMode === "multiply" ? 1 : chromaBlendMode === "screen" ? 2 : 3;
+        currentMaterial.uniforms.uChromaColor1.value = hexToColor(
+            particleAppearanceControls.chromaColor1
+        );
+        currentMaterial.uniforms.uChromaColor2.value = hexToColor(
+            particleAppearanceControls.chromaColor2
+        );
+        currentMaterial.uniforms.uChromaColor3.value = hexToColor(
+            particleAppearanceControls.chromaColor3
+        );
+        currentMaterial.uniforms.uChromaBlendMode.value =
+            chromaBlendMode === "additive"
+                ? 0
+                : chromaBlendMode === "multiply"
+                ? 1
+                : chromaBlendMode === "screen"
+                ? 2
+                : 3;
 
         // Reveal animation prototype
         // Initialize reveal start time
         if (revealStartTime === null) {
             setRevealStartTime(state.clock.elapsedTime);
         }
-        
+
         // Calculate reveal progress (0.0 to 1.0)
         const elapsed = state.clock.elapsedTime - revealStartTime;
         const revealProgress = Math.min(elapsed / REVEAL_DURATION, 1.0);
-        
+
         // Check if reveal just completed
         if (revealProgress >= 1.0 && !revealCompleted) {
             setRevealCompleted(true);
             onRevealComplete?.();
         }
-        
+
         // Update reveal uniforms
         currentMaterial.uniforms.uRevealProgress.value = revealProgress;
         currentMaterial.uniforms.uModelHeight.value = modelBounds.top;
@@ -632,48 +776,65 @@ export function InstancedSphereParticles({
 
             // Apply selected animation mode
             let animationOffset = new Vector3(0, 0, 0);
-            
+
             switch (animationMode) {
                 case "sine_wave":
                     // Current method: simple sine wave on Y axis
-                    animationOffset.y = Math.sin(time + i * 0.1) * animationIntensity;
+                    animationOffset.y =
+                        Math.sin(time + i * 0.1) * animationIntensity;
                     break;
-                    
+
                 case "noise_drift":
                     // Organic drift using simple noise-like functions
-                    const noiseX = Math.sin(time * animationFrequency + i * 0.3) * Math.cos(time * 0.7 + i * 0.1);
-                    const noiseY = Math.cos(time * animationFrequency * 0.8 + i * 0.5) * Math.sin(time * 0.9 + i * 0.2);
-                    const noiseZ = Math.sin(time * animationFrequency * 1.2 + i * 0.7) * Math.cos(time * 0.6 + i * 0.4);
+                    const noiseX =
+                        Math.sin(time * animationFrequency + i * 0.3) *
+                        Math.cos(time * 0.7 + i * 0.1);
+                    const noiseY =
+                        Math.cos(time * animationFrequency * 0.8 + i * 0.5) *
+                        Math.sin(time * 0.9 + i * 0.2);
+                    const noiseZ =
+                        Math.sin(time * animationFrequency * 1.2 + i * 0.7) *
+                        Math.cos(time * 0.6 + i * 0.4);
                     animationOffset.set(
                         noiseX * animationIntensity,
                         noiseY * animationIntensity,
                         noiseZ * animationIntensity * 0.5
                     );
                     break;
-                    
+
                 case "spiral_vortex":
                     // Spiral motion around original position
                     const spiralTime = time * animationFrequency + i * 0.5;
-                    const spiralRadius = animationIntensity * (0.5 + Math.sin(time * 0.3 + i * 0.1) * 0.3);
+                    const spiralRadius =
+                        animationIntensity *
+                        (0.5 + Math.sin(time * 0.3 + i * 0.1) * 0.3);
                     animationOffset.set(
                         Math.cos(spiralTime) * spiralRadius,
                         Math.sin(spiralTime * 0.7) * spiralRadius * 0.5,
                         Math.sin(spiralTime) * spiralRadius
                     );
                     break;
-                    
+
                 case "wave_propagation":
                     // Waves traveling across the face surface
                     const waveSpeed = time * animationFrequency;
                     const particlePos = particle.position;
-                    
+
                     // Create waves based on distance from center
-                    const distanceFromCenter = Math.sqrt(particlePos.x * particlePos.x + particlePos.y * particlePos.y);
-                    const wave1 = Math.sin(waveSpeed - distanceFromCenter * 5.0) * animationIntensity;
-                    
+                    const distanceFromCenter = Math.sqrt(
+                        particlePos.x * particlePos.x +
+                            particlePos.y * particlePos.y
+                    );
+                    const wave1 =
+                        Math.sin(waveSpeed - distanceFromCenter * 5.0) *
+                        animationIntensity;
+
                     // Add perpendicular wave
-                    const wave2 = Math.cos(waveSpeed * 0.7 + particlePos.x * 3.0) * animationIntensity * 0.7;
-                    
+                    const wave2 =
+                        Math.cos(waveSpeed * 0.7 + particlePos.x * 3.0) *
+                        animationIntensity *
+                        0.7;
+
                     animationOffset.set(
                         wave2 * 0.5,
                         wave1,
@@ -681,7 +842,7 @@ export function InstancedSphereParticles({
                     );
                     break;
             }
-            
+
             dummy.position.add(animationOffset);
 
             dummy.updateMatrix();
@@ -713,11 +874,13 @@ export function InstancedSphereParticles({
     }
 
     // Calculate final rotation combining Leva controls and smooth mouse rotation
-    const finalRotation = mouseRotationEnabled ? [
-        rotation[0] + currentRotation.current.x,
-        rotation[1] + currentRotation.current.y,
-        rotation[2] // Z rotation stays unchanged
-    ] : rotation;
+    const finalRotation = mouseRotationEnabled
+        ? [
+              rotation[0] + currentRotation.current.x,
+              rotation[1] + currentRotation.current.y,
+              rotation[2], // Z rotation stays unchanged
+          ]
+        : rotation;
 
     return (
         <instancedMesh
