@@ -10,6 +10,7 @@ import {
 } from '../utils/meshExtractor';
 import { BVH_CONFIG } from '../constants/bvhConfig';
 import { AnimatedWireframeReveal } from './AnimatedWireframeReveal';
+import { InteractiveHoverReveal } from './InteractiveHoverReveal';
 
 /**
  * Props for BVH Face Mesh component
@@ -75,6 +76,7 @@ export function BVHFaceMesh({
     const [extractionResult, setExtractionResult] = useState<MeshExtractionResult | null>(null);
     const [isExtracting, setIsExtracting] = useState(false);
     const [extractionError, setExtractionError] = useState<string | null>(null);
+    const [initialAnimationComplete, setInitialAnimationComplete] = useState(false);
 
     // Load the GLTF model
     const gltf = useLoader(GLTFLoader, '/models/kj_face.glb', (loader) => {
@@ -201,8 +203,8 @@ export function BVHFaceMesh({
 
     return (
         <group position={position} rotation={rotation} scale={scale}>
-            {/* Animated Wireframe Reveal or Regular Mesh */}
-            {useAnimatedReveal ? (
+            {/* Initial animated reveal */}
+            {useAnimatedReveal && !initialAnimationComplete && (
                 <AnimatedWireframeReveal
                     extractionResult={extractionResult}
                     position={[0, 0, 0]}
@@ -217,8 +219,28 @@ export function BVHFaceMesh({
                     castShadow={castShadow}
                     receiveShadow={receiveShadow}
                     visible={visible}
+                    onAnimationComplete={() => setInitialAnimationComplete(true)}
                 />
-            ) : (
+            )}
+            
+            {/* Interactive hover reveal - only after initial animation */}
+            {useAnimatedReveal && initialAnimationComplete && (
+                <InteractiveHoverReveal
+                    extractionResult={extractionResult}
+                    position={[0, 0, 0]}
+                    rotation={[0, 0, 0]}
+                    scale={[1, 1, 1]}
+                    color={color}
+                    opacity={opacity}
+                    initialAnimationComplete={initialAnimationComplete}
+                    castShadow={castShadow}
+                    receiveShadow={receiveShadow}
+                    visible={visible}
+                />
+            )}
+            
+            {/* Regular mesh if not using animated reveal */}
+            {!useAnimatedReveal && (
                 <mesh
                     ref={meshRef}
                     geometry={extractionResult.geometry}

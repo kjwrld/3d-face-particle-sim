@@ -24,7 +24,7 @@ const FaceModel = memo(() => {
                 useAnimatedReveal={true}
                 autoStartReveal={true}
                 revealDuration={3.0}
-                revealLoop={true}
+                revealLoop={false}
             />
         </Suspense>
     );
