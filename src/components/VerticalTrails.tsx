@@ -9,8 +9,6 @@ const MovementDirection = {
     RIGHT: 'right'
 } as const;
 
-type MovementDirectionType = typeof MovementDirection[keyof typeof MovementDirection];
-
 interface TrailActorProps {
     facePosition: THREE.Vector3;
     faceRadius: number;
@@ -43,7 +41,7 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
             currentPosition: position,
             trail: [] as THREE.Vector3[], // Start with empty trail
             framesSinceReset: 0, // Track frames since last reset
-            lastDirection: MovementDirection.UP,
+            lastDirection: MovementDirection.UP as typeof MovementDirection[keyof typeof MovementDirection],
             stepsSinceLastTurn: 0,
             minStepsBeforeNextTurn: 2 + Math.floor(Math.random() * 3), // 2-4 steps before can turn again
             lastMoveTime: 0, // Track when we last moved
@@ -103,7 +101,7 @@ function TrailActor({ facePosition, faceRadius, speed, trailColors, trailIntensi
         }
         
         // Decide next movement direction
-        let nextDirection = MovementDirection.UP; // Default: always move up
+        let nextDirection: typeof MovementDirection[keyof typeof MovementDirection] = MovementDirection.UP; // Default: always move up
         
         // If we still have horizontal moves remaining, continue in that direction
         if (state.current.horizontalMovesRemaining > 0) {

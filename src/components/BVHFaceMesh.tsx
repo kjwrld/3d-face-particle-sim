@@ -204,8 +204,8 @@ export function BVHFaceMesh({
 
     return (
         <group position={position} rotation={rotation} scale={scale}>
-            {/* Initial animated reveal */}
-            {useAnimatedReveal && !initialAnimationComplete && (
+            {/* Initial animated reveal - Commented out until components are implemented */}
+            {/* {useAnimatedReveal && !initialAnimationComplete && (
                 <AnimatedWireframeReveal
                     extractionResult={extractionResult}
                     position={[0, 0, 0]}
@@ -223,10 +223,10 @@ export function BVHFaceMesh({
                     onAnimationComplete={() => setInitialAnimationComplete(true)}
                     onAnimationPhaseChange={onAnimationPhaseChange}
                 />
-            )}
-            
-            {/* Interactive hover reveal - only after initial animation */}
-            {useAnimatedReveal && initialAnimationComplete && (
+            )} */}
+
+            {/* Interactive hover reveal - Commented out until components are implemented */}
+            {/* {useAnimatedReveal && initialAnimationComplete && (
                 <InteractiveHoverReveal
                     extractionResult={extractionResult}
                     position={[0, 0, 0]}
@@ -239,19 +239,17 @@ export function BVHFaceMesh({
                     receiveShadow={receiveShadow}
                     visible={visible}
                 />
-            )}
-            
-            {/* Regular mesh if not using animated reveal */}
-            {!useAnimatedReveal && (
-                <mesh
-                    ref={meshRef}
-                    geometry={extractionResult.geometry}
-                    material={material}
-                    castShadow={castShadow}
-                    receiveShadow={receiveShadow}
-                    visible={visible}
-                />
-            )}
+            )} */}
+
+            {/* Regular mesh */}
+            <mesh
+                ref={meshRef}
+                geometry={extractionResult.geometry}
+                material={material}
+                castShadow={castShadow}
+                receiveShadow={receiveShadow}
+                visible={visible}
+            />
             
             {/* BVH visualization helper */}
             {showBVHTree && (

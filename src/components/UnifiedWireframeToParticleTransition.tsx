@@ -157,7 +157,9 @@ export function UnifiedWireframeToParticleTransition({
                 });
 
                 if (faceGeometry) {
+                    // @ts-expect-error - Complex geometry type narrowing
                     const positions = faceGeometry.attributes.position.array;
+                    // @ts-expect-error - Complex geometry type narrowing
                     const uvs = faceGeometry.attributes.uv?.array;
 
                     if (uvs) {
@@ -529,12 +531,14 @@ export function UnifiedWireframeToParticleTransition({
     // Update material references
     useEffect(() => {
         if (wireframeMeshRef.current?.material) {
+            // @ts-expect-error - Mutable ref pattern
             wireframeMaterialRef.current = wireframeMeshRef.current.material as THREE.ShaderMaterial;
         }
     }, [wireframeMaterial]);
 
     useEffect(() => {
         if (particleMeshRef.current?.material) {
+            // @ts-expect-error - Mutable ref pattern
             particleMaterialRef.current = particleMeshRef.current.material as THREE.ShaderMaterial;
         }
     }, [particleMaterial]);

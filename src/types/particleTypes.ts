@@ -34,12 +34,14 @@ export interface ParticleData {
 /**
  * Particle lifecycle phase enumeration
  */
-export enum ParticleLifecyclePhase {
-    GROWING = 'growing',
-    STABLE = 'stable',
-    SHRINKING = 'shrinking',
-    DEAD = 'dead',
-}
+export const ParticleLifecyclePhase = {
+    GROWING: 'growing',
+    STABLE: 'stable',
+    SHRINKING: 'shrinking',
+    DEAD: 'dead',
+} as const;
+
+export type ParticleLifecyclePhase = typeof ParticleLifecyclePhase[keyof typeof ParticleLifecyclePhase];
 
 /**
  * Particle lifecycle state
@@ -138,12 +140,14 @@ export interface ParticleSystemConfig {
 /**
  * Quality level enumeration
  */
-export enum ParticleQualityLevel {
-    LOW = 'low',
-    MEDIUM = 'medium',
-    HIGH = 'high',
-    ULTRA = 'ultra',
-}
+export const ParticleQualityLevel = {
+    LOW: 'low',
+    MEDIUM: 'medium',
+    HIGH: 'high',
+    ULTRA: 'ultra',
+} as const;
+
+export type ParticleQualityLevel = typeof ParticleQualityLevel[keyof typeof ParticleQualityLevel];
 
 /**
  * Performance metrics interface

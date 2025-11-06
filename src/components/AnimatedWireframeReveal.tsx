@@ -1,8 +1,7 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { MeshExtractor, type MeshExtractionResult } from '../utils/meshExtractor';
-import { BVH_CONFIG } from '../constants/bvhConfig';
+import { type MeshExtractionResult } from '../utils/meshExtractor';
 
 // Import shaders
 import vertexShader from '../shaders/wireframeReveal.vert?raw';
@@ -136,7 +135,7 @@ export function AnimatedWireframeReveal({
     wireframe = true,
     autoStart = true,
     loop = REVEAL_ANIMATION_CONFIG.LOOP,
-    duration = REVEAL_ANIMATION_CONFIG.DURATION,
+    duration = REVEAL_ANIMATION_CONFIG.REVEAL_DURATION,
     onAnimationComplete,
     onAnimationPhaseChange,
     castShadow = false,

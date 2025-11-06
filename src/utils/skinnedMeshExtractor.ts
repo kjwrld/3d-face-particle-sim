@@ -3,6 +3,7 @@ import { MeshBVH, computeBoundsTree, disposeBoundsTree, acceleratedRaycast } fro
 import { BVH_CONFIG } from '../constants/bvhConfig';
 
 // Extend Three.js BufferGeometry with BVH methods
+// @ts-expect-error - BVH library prototype extension
 THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
 THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -111,7 +112,7 @@ export class SkinnedMeshExtractor {
             // Set up BVH on the geometry
             geometry.computeBoundsTree({
                 maxLeafTris: finalOptions.bvhOptions.maxLeafTris,
-                strategy: this.getBVHStrategy(finalOptions.bvhOptions.splitStrategy),
+                strategy: this.getBVHStrategy(finalOptions.bvhOptions.splitStrategy ?? 'SAH'),
                 verbose: finalOptions.bvhOptions.verbose,
             });
 

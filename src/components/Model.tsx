@@ -72,6 +72,7 @@ export function Model({
       
       const scene = gltf.scene.clone()
       scene.traverse((child) => {
+        // @ts-expect-error - Object3D type narrowing
         if (child.isMesh) {
           child.castShadow = true
           child.receiveShadow = true

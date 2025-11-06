@@ -16,41 +16,41 @@ export function FaceLighting({ preset = 'portrait', showHelpers = false }: FaceL
       case 'portrait':
         return {
           ambient: { intensity: 0.3, color: '#f0f0f0' },
-          key: { position: [2, 3, 3], intensity: 1.2, color: '#ffffff' },
-          fill: { position: [-2, 1, 2], intensity: 0.4, color: '#b3d9ff' },
-          rim: { position: [-1, 2, -2], intensity: 0.8, color: '#fff5e6' }
+          key: { position: [2, 3, 3] as [number, number, number], intensity: 1.2, color: '#ffffff' },
+          fill: { position: [-2, 1, 2] as [number, number, number], intensity: 0.4, color: '#b3d9ff' },
+          rim: { position: [-1, 2, -2] as [number, number, number], intensity: 0.8, color: '#fff5e6' }
         }
       
       case 'studio':
         return {
           ambient: { intensity: 0.2, color: '#ffffff' },
-          key: { position: [3, 4, 2], intensity: 1.5, color: '#ffffff' },
-          fill: { position: [-3, 2, 1], intensity: 0.6, color: '#f0f8ff' },
-          rim: { position: [0, 3, -3], intensity: 1.0, color: '#fffacd' }
+          key: { position: [3, 4, 2] as [number, number, number], intensity: 1.5, color: '#ffffff' },
+          fill: { position: [-3, 2, 1] as [number, number, number], intensity: 0.6, color: '#f0f8ff' },
+          rim: { position: [0, 3, -3] as [number, number, number], intensity: 1.0, color: '#fffacd' }
         }
       
       case 'dramatic':
         return {
           ambient: { intensity: 0.1, color: '#1a1a2e' },
-          key: { position: [4, 5, 1], intensity: 2.0, color: '#ffffff' },
-          fill: { position: [-1, 1, 2], intensity: 0.2, color: '#16213e' },
-          rim: { position: [-2, 3, -4], intensity: 1.5, color: '#0f3460' }
+          key: { position: [4, 5, 1] as [number, number, number], intensity: 2.0, color: '#ffffff' },
+          fill: { position: [-1, 1, 2] as [number, number, number], intensity: 0.2, color: '#16213e' },
+          rim: { position: [-2, 3, -4] as [number, number, number], intensity: 1.5, color: '#0f3460' }
         }
       
       case 'natural':
         return {
           ambient: { intensity: 0.4, color: '#87ceeb' },
-          key: { position: [1, 4, 2], intensity: 1.0, color: '#fffaf0' },
-          fill: { position: [-2, 2, 3], intensity: 0.5, color: '#e6f3ff' },
-          rim: { position: [2, 1, -1], intensity: 0.6, color: '#fff8dc' }
+          key: { position: [1, 4, 2] as [number, number, number], intensity: 1.0, color: '#fffaf0' },
+          fill: { position: [-2, 2, 3] as [number, number, number], intensity: 0.5, color: '#e6f3ff' },
+          rim: { position: [2, 1, -1] as [number, number, number], intensity: 0.6, color: '#fff8dc' }
         }
       
       default:
         return {
           ambient: { intensity: 0.3, color: '#f0f0f0' },
-          key: { position: [2, 3, 3], intensity: 1.2, color: '#ffffff' },
-          fill: { position: [-2, 1, 2], intensity: 0.4, color: '#b3d9ff' },
-          rim: { position: [-1, 2, -2], intensity: 0.8, color: '#fff5e6' }
+          key: { position: [2, 3, 3] as [number, number, number], intensity: 1.2, color: '#ffffff' },
+          fill: { position: [-2, 1, 2] as [number, number, number], intensity: 0.4, color: '#b3d9ff' },
+          rim: { position: [-1, 2, -2] as [number, number, number], intensity: 0.8, color: '#fff5e6' }
         }
     }
   }

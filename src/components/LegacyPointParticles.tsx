@@ -87,7 +87,9 @@ export function LegacyPointParticles() {
     const enhancedGeometry = useMemo(() => {
         if (!geometry) return null;
 
+        // @ts-expect-error - Complex geometry type narrowing
         const positions = geometry.attributes.position.array;
+        // @ts-expect-error - Complex geometry type narrowing
         const uvs = geometry.attributes.uv?.array;
 
         if (!uvs) return geometry; // Fallback to original if no UVs

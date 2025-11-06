@@ -109,7 +109,7 @@ export class WebGLCapabilityChecker {
      */
     static checkCapabilities(canvas?: HTMLCanvasElement): WebGLCapabilities {
         const testCanvas = canvas || document.createElement('canvas');
-        const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+        const gl = (testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
 
         if (!gl) {
             return {
@@ -492,7 +492,10 @@ export class ConfigValidator {
         const defaults = {
             particleCount: ParticleCountCalculator.calculateParticleCount(),
             emissiveCount: PARTICLE_SYSTEM_CONFIG.SIMULATION.EMISSIVE_COUNT,
-            sphereSegments: PARTICLE_SYSTEM_CONFIG.RENDERING.SPHERE_SEGMENTS,
+            sphereSegments: {
+                width: PARTICLE_SYSTEM_CONFIG.RENDERING.SPHERE_SEGMENTS.WIDTH,
+                height: PARTICLE_SYSTEM_CONFIG.RENDERING.SPHERE_SEGMENTS.HEIGHT,
+            },
             baseScale: PARTICLE_SYSTEM_CONFIG.RENDERING.SCALE.BASE,
             animationSpeed: 1.0,
             enableGPUSimulation: WebGLCapabilityChecker.canUseGPUSimulation(),
