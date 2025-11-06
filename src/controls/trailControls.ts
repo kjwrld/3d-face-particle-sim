@@ -19,14 +19,14 @@ export function useTrailControls() {
 
         // Animation Controls
         trailSpeed: {
-            value: 1.3,
+            value: 1.0,
             step: 0.05,
             min: 1.0,
             max: 2.0,
             label: "Trail Speed",
         },
         trailHeight: {
-            value: 1,
+            value: 1.0,
             step: 0.1,
             min: 1.0,
             max: 8.0,
@@ -44,7 +44,7 @@ export function useTrailControls() {
 
         // Visual Controls
         trailIntensity: {
-            value: 0.8,
+            value: 0.5,
             step: 0.1,
             min: 0.1,
             max: 2.0,
@@ -56,18 +56,10 @@ export function useTrailControls() {
             value: "#ffffff",
             label: "Trail Color",
         },
-        trailColor2: {
-            value: "#ffffff",
-            label: "Trail Color 2 (unused)",
-        },
-        trailColor3: {
-            value: "#ffffff",
-            label: "Trail Color 3 (unused)",
-        },
 
         // Positioning
         trailRadius: {
-            value: 1.3,
+            value: 1.0,
             step: 0.1,
             min: 0.5,
             max: 3.0,
@@ -76,7 +68,7 @@ export function useTrailControls() {
 
         // Tube Geometry Controls
         tubeRadius: {
-            value: 0.005,
+            value: 0.009,
             step: 0.001,
             min: 0.001,
             max: 0.02,
@@ -90,7 +82,7 @@ export function useTrailControls() {
             label: "Tube Segments",
         },
         tubeSmoothness: {
-            value: 2.0,
+            value: 0.0,
             step: 0.5,
             min: 1.0,
             max: 4.0,

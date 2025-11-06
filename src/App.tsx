@@ -2,6 +2,7 @@ import { useState, memo, Suspense, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { TriangleParticles } from "./components/TriangleParticles";
+import { BVHFaceMesh } from "./components/BVHFaceMesh";
 import { SimpleFaceLighting } from "./components/SimpleFaceLighting";
 import { SimpleEnvironment } from "./components/SimpleEnvironment";
 import { VerticalTrails } from "./components/VerticalTrails";
@@ -13,6 +14,14 @@ const FaceModel = memo(() => {
     return (
         <Suspense fallback={null}>
             <TriangleParticles />
+            {/* BVH Face Mesh for testing - positioned slightly behind particles */}
+            <BVHFaceMesh 
+                position={[0, 0, -0.1]}
+                wireframe={true}
+                color="#00ff88"
+                opacity={0.3}
+                transparent={true}
+            />
         </Suspense>
     );
 });
