@@ -8,7 +8,7 @@ import { SimpleEnvironment } from "./components/SimpleEnvironment";
 import { VerticalTrails } from "./components/VerticalTrails";
 import { ToneMappingPass } from "./components/ToneMappingPass";
 import { useTrailControls } from "./controls/trailControls";
-import { useControls } from "leva";
+import { useControls, Leva } from "leva";
 import { Vector3 } from "three";
 import "./App.css";
 
@@ -173,18 +173,21 @@ function App() {
     >("studio");
 
     return (
-        <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-            <Canvas
-                shadows
-                camera={{ position: [0, 0, 5], fov: 50 }}
-                gl={{ antialias: true, alpha: false }}
-            >
-                <Scene
-                    lightingPreset={lightingPreset}
-                    environmentPreset={environmentPreset}
-                />
-            </Canvas>
-        </div>
+        <>
+            <Leva hidden={true} />
+            <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
+                <Canvas
+                    shadows
+                    camera={{ position: [0, 0, 5], fov: 50 }}
+                    gl={{ antialias: true, alpha: false }}
+                >
+                    <Scene
+                        lightingPreset={lightingPreset}
+                        environmentPreset={environmentPreset}
+                    />
+                </Canvas>
+            </div>
+        </>
     );
 }
 
