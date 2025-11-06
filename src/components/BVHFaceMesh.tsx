@@ -9,6 +9,7 @@ import {
     type MeshExtractionResult 
 } from '../utils/meshExtractor';
 import { BVH_CONFIG } from '../constants/bvhConfig';
+import { AnimatedWireframeReveal } from './AnimatedWireframeReveal';
 
 /**
  * Props for BVH Face Mesh component
@@ -36,6 +37,14 @@ export interface BVHFaceMeshProps {
     visible?: boolean;
     /** Debug: show BVH tree visualization */
     showBVHTree?: boolean;
+    /** Whether to use animated reveal */
+    useAnimatedReveal?: boolean;
+    /** Whether reveal animation should auto-start */
+    autoStartReveal?: boolean;
+    /** Reveal animation duration */
+    revealDuration?: number;
+    /** Whether reveal animation should loop */
+    revealLoop?: boolean;
 }
 
 /**
@@ -54,6 +63,10 @@ export function BVHFaceMesh({
     receiveShadow = BVH_CONFIG.RENDERING.VISIBILITY.RECEIVE_SHADOW,
     visible = BVH_CONFIG.RENDERING.VISIBILITY.VISIBLE,
     showBVHTree = BVH_CONFIG.DEBUG.SHOW_BVH_TREE,
+    useAnimatedReveal = false,
+    autoStartReveal = true,
+    revealDuration = 3.0,
+    revealLoop = true,
 }: BVHFaceMeshProps) {
     const meshRef = useRef<THREE.Mesh>(null);
     const bvhHelperRef = useRef<THREE.Object3D>(null);
@@ -188,15 +201,33 @@ export function BVHFaceMesh({
 
     return (
         <group position={position} rotation={rotation} scale={scale}>
-            {/* Main BVH mesh */}
-            <mesh
-                ref={meshRef}
-                geometry={extractionResult.geometry}
-                material={material}
-                castShadow={castShadow}
-                receiveShadow={receiveShadow}
-                visible={visible}
-            />
+            {/* Animated Wireframe Reveal or Regular Mesh */}
+            {useAnimatedReveal ? (
+                <AnimatedWireframeReveal
+                    extractionResult={extractionResult}
+                    position={[0, 0, 0]}
+                    rotation={[0, 0, 0]}
+                    scale={[1, 1, 1]}
+                    color={color}
+                    opacity={opacity}
+                    wireframe={wireframe}
+                    autoStart={autoStartReveal}
+                    duration={revealDuration}
+                    loop={revealLoop}
+                    castShadow={castShadow}
+                    receiveShadow={receiveShadow}
+                    visible={visible}
+                />
+            ) : (
+                <mesh
+                    ref={meshRef}
+                    geometry={extractionResult.geometry}
+                    material={material}
+                    castShadow={castShadow}
+                    receiveShadow={receiveShadow}
+                    visible={visible}
+                />
+            )}
             
             {/* BVH visualization helper */}
             {showBVHTree && (

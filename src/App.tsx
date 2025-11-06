@@ -18,9 +18,13 @@ const FaceModel = memo(() => {
             <BVHFaceMesh 
                 position={[0, 0, -0.1]}
                 wireframe={true}
-                color="#00ff88"
-                opacity={0.3}
+                color="#ffffff"
+                opacity={0.8}
                 transparent={true}
+                useAnimatedReveal={true}
+                autoStartReveal={true}
+                revealDuration={3.0}
+                revealLoop={true}
             />
         </Suspense>
     );
