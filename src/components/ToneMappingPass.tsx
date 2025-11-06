@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import {
     WebGLRenderTarget,

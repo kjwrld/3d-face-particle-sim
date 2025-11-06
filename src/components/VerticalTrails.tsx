@@ -1,13 +1,15 @@
-import React, { useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { TubeGeometry } from "three";
 
-enum MovementDirection {
-    UP = 'up',
-    LEFT = 'left',
-    RIGHT = 'right'
-}
+const MovementDirection = {
+    UP: 'up',
+    LEFT: 'left',
+    RIGHT: 'right'
+} as const;
+
+type MovementDirectionType = typeof MovementDirection[keyof typeof MovementDirection];
 
 interface TrailActorProps {
     facePosition: THREE.Vector3;

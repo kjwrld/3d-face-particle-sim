@@ -1,8 +1,7 @@
-import { useState, memo, Suspense, useEffect, useRef } from "react";
+import { useState, memo, Suspense, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { TriangleParticles } from "./components/TriangleParticles";
-import { BVHFaceMesh } from "./components/BVHFaceMesh";
 import { SimpleFaceLighting } from "./components/SimpleFaceLighting";
 import { SimpleEnvironment } from "./components/SimpleEnvironment";
 import { VerticalTrails } from "./components/VerticalTrails";
@@ -99,8 +98,6 @@ function Scene({
         trailIntensity,
         maxLifespan,
         trailColor1,
-        trailColor2,
-        trailColor3,
         trailRadius,
         tubeRadius,
         tubeSegments,
@@ -144,8 +141,8 @@ function Scene({
                 maxLifespan={maxLifespan}
                 trailColors={{
                     color1: trailColor1,
-                    color2: trailColor2,
-                    color3: trailColor3,
+                    color2: trailColor1,
+                    color3: trailColor1,
                 }}
                 tubeRadius={tubeRadius}
                 tubeSegments={tubeSegments}
@@ -165,10 +162,10 @@ function Scene({
 }
 
 function App() {
-    const [lightingPreset, setLightingPreset] = useState<
+    const [lightingPreset] = useState<
         "portrait" | "studio" | "dramatic" | "natural"
     >("natural");
-    const [environmentPreset, setEnvironmentPreset] = useState<
+    const [environmentPreset] = useState<
         "studio" | "sunset" | "dawn" | "night" | "forest" | "city" | "apartment"
     >("studio");
 

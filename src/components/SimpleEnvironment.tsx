@@ -69,8 +69,7 @@ const EnvironmentLighting = memo(({ preset }: SimpleEnvironmentProps) => {
       
       {/* Hemisphere light for environment simulation */}
       <hemisphereLight
-        skyColor={config.env.color}
-        groundColor="#2c2c2c"
+        args={[config.env.color, "#2c2c2c"]}
         intensity={config.env.intensity}
       />
     </>

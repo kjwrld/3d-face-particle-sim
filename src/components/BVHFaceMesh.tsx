@@ -4,13 +4,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { getDracoLoader } from '../utils/loaders';
 import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
-import { 
-    MeshExtractor, 
-    type MeshExtractionResult 
+import {
+    MeshExtractor,
+    type MeshExtractionResult
 } from '../utils/meshExtractor';
 import { BVH_CONFIG } from '../constants/bvhConfig';
-import { AnimatedWireframeReveal } from './AnimatedWireframeReveal';
-import { InteractiveHoverReveal } from './InteractiveHoverReveal';
 
 /**
  * Props for BVH Face Mesh component
