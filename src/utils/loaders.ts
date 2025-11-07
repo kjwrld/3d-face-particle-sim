@@ -7,7 +7,8 @@ let gltfLoader: GLTFLoader | null = null;
 export function getDracoLoader(): DRACOLoader {
     if (!dracoLoader) {
         dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath("/draco/");
+        // Use Vite's base URL for proper path resolution in dev and production
+        dracoLoader.setDecoderPath(`${import.meta.env.BASE_URL}draco/`);
         dracoLoader.preload();
     }
     return dracoLoader;
