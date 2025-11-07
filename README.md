@@ -1,73 +1,94 @@
-# React + TypeScript + Vite
+# 3D Face Particle Simulation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time particle simulation of a 3D face mesh using Three.js, React Three Fiber, and custom GLSL shaders.
 
-Currently, two official plugins are available:
+## Demo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+[View Live Demo](https://kjwrld.github.io/3d-face-particle-sim/)
 
-## React Compiler
+## Overview
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This project renders a 3D face model as dynamic particles with custom shader effects including:
+- Triangle-based particle rendering (inspired by [Edan Kwan](https://github.com/edankwan))
+- Vertical line trail effects (inspired by [@junkiyoshi](https://github.com/junkiyoshi))
+- Wireframe-to-particle transitions
+- BVH-accelerated mesh operations
+- Real-time chromatic aberration and lighting effects
 
-## Expanding the ESLint configuration
+## How It Was Made
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 1. Face Model Creation
+Created a realistic 3D face mesh using [KeenTools FaceBuilder for Blender](https://keentools.io/download/facebuilder-for-blender):
+- Uploaded reference photos
+- Generated 3D face topology
+- UV mapped and textured the model
+- Exported as `.glb` with Draco compression
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 2. Particle System Setup
+Built with React Three Fiber and Three.js:
+- Extracted vertex positions from the face mesh
+- Implemented surface sampling for higher particle density
+- Applied barycentric coordinate interpolation for smooth distribution
+- Sampled texture colors at UV coordinates
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 3. Custom Shader Development
+Wrote GLSL vertex and fragment shaders for:
+- **Triangle particles**: Each particle rendered as a camera-facing triangle
+- **Vertical line trails**: Motion trails that follow particle movement
+- **Lighting effects**: Dynamic ambient and directional lighting
+- **Chromatic aberration**: RGB color separation effects
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 4. Advanced Features
+- BVH (Bounding Volume Hierarchy) acceleration for raycasting
+- Wireframe reveal animations with fade zones
+- Unified transition system between wireframe and particles
+- Instanced rendering for performance optimization
+- Leva GUI controls for real-time parameter tweaking
+
+## Tech Stack
+
+- **React** + **TypeScript** + **Vite**
+- **Three.js** - 3D graphics engine
+- **React Three Fiber** - React renderer for Three.js
+- **React Three Drei** - Useful helpers for R3F
+- **three-mesh-bvh** - BVH acceleration structure
+- **Leva** - GUI controls for real-time adjustments
+- **GLSL** - Custom vertex and fragment shaders
+
+## Installation
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Build
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
+
+## Project Structure
+
+```
+src/
+├── components/       # React Three Fiber components
+├── shaders/         # GLSL shader files (.vert, .frag)
+├── utils/           # Helper utilities (loaders, mesh extraction)
+├── constants/       # Configuration constants
+└── App.tsx          # Main application
+
+public/
+├── models/          # 3D models (.glb)
+└── draco/          # Draco decoder for compression
+```
+
+## Credits
+
+- **Triangle Particles**: Inspired by [Edan Kwan](https://github.com/edankwan)'s particle techniques
+- **Vertical Line Trails**: Inspired by [@junkiyoshi](https://github.com/junkiyoshi)'s creative coding
+- **Face Model**: Created with [KeenTools FaceBuilder](https://keentools.io/)
+
+## License
+
+MIT
