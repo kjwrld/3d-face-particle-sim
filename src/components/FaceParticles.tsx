@@ -19,7 +19,7 @@ export function FaceParticles() {
     const [vertices, setVertices] = useState<Vector3[]>([]);
 
     // Load the GLTF model with Draco compression
-    const gltf = useLoader(GLTFLoader, "/models/kj_face.glb", (loader) => {
+    const gltf = useLoader(GLTFLoader, `${import.meta.env.BASE_URL}models/kj_face.glb`, (loader) => {
         loader.setDRACOLoader(getDracoLoader());
     });
 

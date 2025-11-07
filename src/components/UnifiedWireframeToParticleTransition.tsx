@@ -125,7 +125,7 @@ export function UnifiedWireframeToParticleTransition({
     } | null>(null);
 
     // Load the GLTF model
-    const gltf = useLoader(GLTFLoader, '/models/kj_face.glb', (loader) => {
+    const gltf = useLoader(GLTFLoader, `${import.meta.env.BASE_URL}models/kj_face.glb`, (loader) => {
         loader.setDRACOLoader(getDracoLoader());
     });
 
